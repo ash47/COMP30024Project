@@ -3,7 +3,7 @@ public class Main {
 	// Create new board
 	Board board = new Board(5);
 	
-	// Read in data
+	// Read in data	
 	
 	// Check if every square is taken (mark flag)
 	
