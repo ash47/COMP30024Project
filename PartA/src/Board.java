@@ -68,6 +68,15 @@ public class Board {
 	
 	// Checks if a cell is valid
 	public boolean isValidCell(int x, int y) {
+		if(		//Valid cells are integer pairings on the plane described by {abs(x-(n-1))<=(n-1), abs(y-(n-1))<=(n-1), abs(x-y)<=n-1}
+				//"If" checks for integers out of the range and returns false if found
+				(Math.abs(x-(n-1)) > (size-1))||
+				(Math.abs(y-(n-1)) > (size-1))||
+				(Math.abs(x-y)     > (size-1))
+				){
+			return false;
+		}
+		
 		return true;
 	}
 	
@@ -100,7 +109,12 @@ public class Board {
 		Cell[] list = new Cell[6];
 		
 		// Build list
-		list[0] = getCell(x-1, x+1);	// Fill these in
+		list[0] = getCell(x-1, y-1);	// Up left
+		list[1] = getCell(x  , y-1);	// Up right		
+		list[2] = getCell(x-1, y  );	// Left
+		list[3] = getCell(x+1, y  );	// Right
+		list[4] = getCell(x  , y+1);	// Down left
+		list[5] = getCell(x+1, y+1);	// Down right
 		
 		return list;
 	}
