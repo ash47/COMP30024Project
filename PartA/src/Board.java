@@ -81,7 +81,7 @@ public class Board {
 							Cell adjCell = adj[i];
 							
 							// Check if they are the same player
-							if(adjCell.player == cell.player) {
+							if(adjCell != null && adjCell.player == cell.player) {
 								if(!cell.red) {
 									if(!adjCell.red && adjCell.loopGraph != null) {
 										cell.loopGraph = adjCell.loopGraph;
