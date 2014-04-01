@@ -1,11 +1,18 @@
 
+/**
+ * Main board class
+ * @author aschmid
+ */
 public class Board {
-	// These are the cells of the board
+	/** These are the cells of the board */
 	public Cell[][] cells;
 	
-	// The size of the board
+	/** The size of the board */
 	public int size;
 	
+	/**
+	 * @param size The size of the board
+	 */
 	public Board(int size) {
 		// Allocate memory for the cells
 		cells = new Cell[size][size];
@@ -18,12 +25,16 @@ public class Board {
 		}
 	}
 	
-	// Marks each cell as either redundent or not
+	/**
+	 * Marks each cell as either redundent or not
+	 */
 	public void markRed() {
 		// Mark stuff
 	}
 	
-	// Build graphs
+	/**
+	 * Build graphs
+	 */
 	public void buildGraphs() {
 		// Mark stuff as redunedent
 		markRed();
@@ -66,21 +77,30 @@ public class Board {
 		}
 	}
 	
-	// Checks if a cell is valid
+	/**
+	 * Checks if a cell is valid
+	 * @param x The x coordinate of the cell
+	 * @param y The y coordinate of the cell
+	 * @return Is this cell valid?
+	 */
 	public boolean isValidCell(int x, int y) {
-		if(		//Valid cells are integer pairings on the plane described by {abs(x-(n-1))<=(n-1), abs(y-(n-1))<=(n-1), abs(x-y)<=n-1}
-				//"If" checks for integers out of the range and returns false if found
-				(Math.abs(x-(n-1)) > (size-1))||
-				(Math.abs(y-(n-1)) > (size-1))||
-				(Math.abs(x-y)     > (size-1))
-				){
+		// Valid cells are integer pairings on the plane described by {abs(x-(n-1))<=(n-1), abs(y-(n-1))<=(n-1), abs(x-y)<=n-1}
+		// Checks for integers out of the range and returns false if found
+		if(	Math.abs(x-(this.size-1)) > (this.size-1) ||
+			Math.abs(y-(this.size-1)) > (this.size-1) ||
+			Math.abs(x-y) > (this.size-1)){
 			return false;
 		}
 		
 		return true;
 	}
 	
-	// Returns a cell
+	/**
+	 * Gets a cell in a specified cell
+	 * @param x The x coordinate of the cell you want
+	 * @param y The y coordinate of the cell you want
+	 * @return A cell if it exists, or null
+	 */
 	public Cell getCell(int x, int y) {
 		// Check if the cell is valid
 		if(!isValidCell(x, y)) {
@@ -90,7 +110,13 @@ public class Board {
 		return cells[x][y];
 	}
 	
-	// Sets a player into a cell
+	
+	/**
+	 * Sets a player ID into a cell
+	 * @param x The x coordinate of the cell you want
+	 * @param y The y coordinate of the cell you want
+	 * @param player The color of the player to put into this cell
+	 */
 	public void setCell(int x, int y, int player) {
 		Cell cell = getCell(x, y);
 		
@@ -99,11 +125,23 @@ public class Board {
 		}
 	}
 	
-	// Returns the side a cell is on (0 if no side)
+	
+	/**
+	 * Get the side a cell is on (0 if no side)
+	 * @param x The x coordinate of the cell to check
+	 * @param y The y coordinate of the cell to check
+	 * @return The ID of the side this cell touches, or 0 for no side
+	 */
 	public int getSide(int x, int y) {
 		return 0;
 	}
 	
+	/**
+	 * Gets all the adjacent cells
+	 * @param x The x coordinate of the cell to get adjacencies for
+	 * @param y The y coordinate of the cell to get adjacencies for
+	 * @return An array of size 6, containing the adjacent cells, cells will be null if they dont exist
+	 */
 	public Cell[] getAdj(int x, int y) {
 		// Create list for cells
 		Cell[] list = new Cell[6];
