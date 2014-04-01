@@ -37,6 +37,9 @@ public class Main {
 		// Create new board
 		Board board = new Board(size);
 		
+		// A flag to detect if every square is taken
+		boolean allTaken = true;
+		
 		// Read input
 		for(int y=0; y<size; y++) {
 			// Get info for this row
@@ -61,6 +64,21 @@ public class Main {
 			for(int i=0; i<rowSize; i++) {
 				// Get the id of who is in this cell
 				int playerID = Board.getPlayerID(line.charAt(i));
+				
+				// Validate input
+				if(playerID == Board.PLAYER_UNKNOWN) {
+					// Close scanner
+					sc.close();
+					
+					// Print error here
+					System.out.print("Unknown player token on line "+(y+2)+" (Got "+line.charAt(i)+")");
+					
+					// Exit
+					return;
+				}else if(playerID == Board.PLAYER_NONE) {
+					// There is at least one empty square
+					allTaken = false;
+				}
 				
 				// Store it
 				board.setCell(x+i, y, playerID);

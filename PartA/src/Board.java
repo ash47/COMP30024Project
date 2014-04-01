@@ -35,6 +35,9 @@ public class Board {
 	 * @param size The size of the board
 	 */
 	public Board(int size) {
+		// Store size
+		this.size = size;
+		
 		// Allocate memory for the cells
 		cells = new Cell[2*size][2*size];
 		
