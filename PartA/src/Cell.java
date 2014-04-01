@@ -12,8 +12,24 @@ public class Cell {
 	private boolean red;
 	
 	/** The tripod this cell belongs to */
-	public TripodGraph tripodGraph;
+	private TripodGraph tripodGraph;
 	
+	/**
+	 * Gets this cells tripod graph
+	 * @return This cell's tripod graph
+	 */
+	public TripodGraph getTripodGraph() {
+		return tripodGraph;
+	}
+
+	/**
+	 * Sets this tripods graph
+	 * @param tripodGraph The graph to merge this cell into
+	 */
+	public void setTripodGraph(TripodGraph tripodGraph) {
+		this.tripodGraph = tripodGraph;
+	}
+
 	/**
 	 * Creates a new cell
 	 * @param player The ID of the player to set this cell to

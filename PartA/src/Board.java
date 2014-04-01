@@ -60,8 +60,6 @@ public class Board {
 	 */
 	public void markRed() {
 		while(true) {
-			System.out.println("Loop");
-			
 			// Did we make a change?
 			boolean changed = false;
 			
@@ -130,9 +128,6 @@ public class Board {
 							
 							// Store that we made a change
 							changed = true;
-							
-							System.out.println("found red");
-							System.out.println(cell.getPlayer());
 						}
 					}
 				}
@@ -147,11 +142,18 @@ public class Board {
 	}
 	
 	/**
-	 * Build graphs
+	 * Checks the board for a winner
+	 * @return true if there is a winner, false if there is no winner
 	 */
-	public void buildGraphs() {
+	public boolean checkForWinner() {
 		// Mark stuff as redunedent
 		markRed();
+		
+		// State controllers
+		boolean loopBlack = false;
+		boolean loopWhite = false;
+		boolean tripodBlack = false;
+		boolean tripodWhite = false;
 		
 		// Build graphs
 		for(int x=0;x<this.size;x++) {
@@ -161,22 +163,50 @@ public class Board {
 				// Check if there is a player in this cell
 				if(cell.getPlayer() != 0) {
 					if(cell != null) {
+						// Check for loops
+						if(!cell.isRed()) {
+							// Found a loop
+							if(cell.getPlayer() == PLAYER_WHITE) {
+								loopWhite = true;
+							} else if(cell.getPlayer() == PLAYER_BLACK) {
+								loopBlack = true;
+							}
+						}
+						
+						// Grab all the adj cells
 						Cell[] adj = getAdj(x, y);
 						
+						// Loop over every cell
 						for(int i=0;i<MAX_ADJ;i++) {
 							Cell adjCell = adj[i];
 							
 							// Check if they are the same player
 							if(adjCell != null && adjCell.getPlayer() == cell.getPlayer()) {
-								if(!cell.isRed()) {
-									System.out.println("Found a loop!");
+								if(adjCell.getTripodGraph() != null) {
+									cell.setTripodGraph(adjCell.getTripodGraph());
+									break;
 								}
-								
-								if(adjCell.tripodGraph != null) {
-									cell.tripodGraph = adjCell.tripodGraph;
-								} else {
-									cell.tripodGraph = new TripodGraph(cell.getPlayer());
-								}
+							}
+						}
+						
+						// If no tripod exists, make one
+						if(cell.getTripodGraph() == null) {
+							cell.setTripodGraph(new TripodGraph(cell.getPlayer()));
+						}
+						
+						
+						TripodGraph tr = cell.getTripodGraph();
+						
+						// Mark this side of the tripod as touched
+						tr.touchSide(this.getSide(x, y));
+						
+						// Check if this tripod has 3 sides or more
+						if(tr.getEdgeCount() >= 3) {
+							// Found tripod
+							if(cell.getPlayer() == PLAYER_WHITE) {
+								tripodWhite = true;
+							} else if(cell.getPlayer() == PLAYER_BLACK) {
+								tripodBlack = true;
 							}
 						}
 					}
@@ -185,6 +215,56 @@ public class Board {
 				
 			}
 		}
+		
+		// Check who won
+		if(loopBlack || tripodBlack) {
+			// Black won, white unknown
+			
+			if(loopWhite || tripodWhite) {
+				// Draw
+				System.out.println(Main.MESSAGE_DRAW);
+			} else {
+				if(!loopBlack) {
+					// Tripod black won
+					System.out.println(Main.MESSAGE_BLACK_WINS);
+					System.out.println(Main.MESSAGE_TRIPOD_WINS);
+				} else if(!tripodBlack) {
+					// Loop black won
+					System.out.println(Main.MESSAGE_BLACK_WINS);
+					System.out.println(Main.MESSAGE_LOOP_WINS);
+				} else {
+					// Both black won
+					System.out.println(Main.MESSAGE_BLACK_WINS);
+					System.out.println(Main.MESSAGE_BOTH_WINS);
+				}
+			}
+			return true;
+		} else {
+			// Black lost, white unknown
+			
+			if(loopWhite || tripodWhite) {
+				if(!loopWhite) {
+					// Tripod white won
+					System.out.println(Main.MESSAGE_WHITE_WINS);
+					System.out.println(Main.MESSAGE_TRIPOD_WINS);
+				} else if(!tripodWhite) {
+					// Loop white won
+					System.out.println(Main.MESSAGE_WHITE_WINS);
+					System.out.println(Main.MESSAGE_LOOP_WINS);
+					
+				} else {
+					// Both white won
+					System.out.println(Main.MESSAGE_WHITE_WINS);
+					System.out.println(Main.MESSAGE_BOTH_WINS);
+				}
+			} else {
+				// No winner
+				return false;
+			}
+		}
+		
+		// Someone won
+		return true;
 	}
 	
 	/**

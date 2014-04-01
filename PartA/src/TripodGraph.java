@@ -25,7 +25,7 @@ public class TripodGraph extends Graph {
 	 * @param side The ID of the side to touch
 	 */
 	public void touchSide(int side) {
-		if(!isSideTouched(side)) {
+		if(side > 0 && !isSideTouched(side)) {
 			// Increase number of sides touched
 			edgeCount++;
 			
@@ -42,5 +42,13 @@ public class TripodGraph extends Graph {
 	public boolean isSideTouched(int side) {
 		// Check if a given side is touched
 		return (sides&side) != 0;
+	}
+	
+	/**
+	 * Gets this tripod's edge count
+	 * @return This tripod's edge count
+	 */
+	public int getEdgeCount() {
+		return this.edgeCount;
 	}
 }

@@ -114,7 +114,16 @@ public class Main {
 		// Fill cells in
 		
 		// Build the graphs'
-		board.buildGraphs();
+		if(!board.checkForWinner()) {
+			// If there is no clear winner and everything is taken
+			if(allTaken) {
+				// Must be a draw
+				System.out.println(MESSAGE_DRAW);
+			} else {
+				// No winner, and game still has spots left
+				System.out.println(MESSAGE_NONE);
+			}
+		}
 		
 		// Check for the win
 		
@@ -123,14 +132,5 @@ public class Main {
 		// Check for loops in the loop graph
 		
 		// Output if someone won or not
-		
-		// If there is no clear winner and everything is taken
-		if(allTaken) {
-			// Must be a draw
-			System.out.println(MESSAGE_DRAW);
-		} else {
-			// No winner, and game still has spots left
-			System.out.println(MESSAGE_NONE);
-		}
 	}
 }
