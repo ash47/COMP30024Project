@@ -10,6 +10,27 @@ public class Board {
 	/** The size of the board */
 	public int size;
 	
+	/** The id of aN unknown player (invalid input) */
+	public static final int PLAYER_UNKNOWN = -1;
+	
+	/** The id of a blank player */
+	public static final int PLAYER_NONE = 0;
+	
+	/** The id of a white player */
+	public static final int PLAYER_WHITE = 1;
+	
+	/** The id of a black player */
+	public static final int PLAYER_BLACK = 2;
+	
+	/** The token for no player */
+	public static final char PLAYER_NONE_TOKEN = '-';
+	
+	/** The token for white player */
+	public static final char PLAYER_WHITE_TOKEN = 'W';
+	
+	/** The token for black player */
+	public static final char PLAYER_BLACK_TOKEN = 'B';
+	
 	/**
 	 * @param size The size of the board
 	 */
@@ -196,14 +217,18 @@ public class Board {
 	 * @return
 	 */
 	public static int getPlayerID(char id) {
-		if(id == 'B') {
-			return 2;
-		} else if(id == 'W') {
-			return 1;
-		} else if(id == '-') {
-			return 0;
+		if(id == PLAYER_BLACK_TOKEN) {
+			// Black player
+			return PLAYER_BLACK;
+		} else if(id == PLAYER_WHITE_TOKEN) {
+			// White player
+			return PLAYER_WHITE;
+		} else if(id == PLAYER_NONE_TOKEN) {
+			// No player
+			return PLAYER_NONE;
 		} else {
-			return -1;
+			// Unknwon player (invalid input)
+			return PLAYER_UNKNOWN;
 		}
 	}
 }
