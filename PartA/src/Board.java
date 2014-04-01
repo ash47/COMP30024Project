@@ -15,12 +15,16 @@ public class Board {
 	 */
 	public Board(int size) {
 		// Allocate memory for the cells
-		cells = new Cell[size][size];
+		cells = new Cell[2*size][2*size];
 		
 		// Fill our board up
-		for(int i=0;i<size;i++) {
-			for(int j=0;j<size;j++) {
-				cells[i][j] = new Cell(0);
+		for(int i=0;i<2*size;i++) {
+			for(int j=0;j<2*size;j++) {
+				// Check if it's a valid cell
+				if(this.isValidCell(i, j)) {
+					// Store it
+					cells[i][j] = new Cell(0);
+				}
 			}
 		}
 	}
@@ -96,6 +100,24 @@ public class Board {
 	}
 	
 	/**
+	 * Gets the first valid x coordinate for the given y coordinate
+	 * @param y The y coordinate to check against
+	 * @return The first valid x position for the given y, or -1 for no valid positions
+	 */
+	public int getFirstX(int y) {
+		return 0;
+	}
+	
+	/**
+	 * Returns the size of a given row
+	 * @param y The y coordinate of the row to find the size of
+	 * @return The size of a given row
+	 */
+	public int getRowSize(int y) {
+		return 0;
+	}
+	
+	/**
 	 * Gets a cell in a specified cell
 	 * @param x The x coordinate of the cell you want
 	 * @param y The y coordinate of the cell you want
@@ -147,13 +169,30 @@ public class Board {
 		Cell[] list = new Cell[6];
 		
 		// Build list
-		list[0] = getCell(x-1, y-1);	// Up left
-		list[1] = getCell(x  , y-1);	// Up right		
-		list[2] = getCell(x-1, y  );	// Left
-		list[3] = getCell(x+1, y  );	// Right
-		list[4] = getCell(x  , y+1);	// Down left
-		list[5] = getCell(x+1, y+1);	// Down right
+		list[0] = getCell(x  , y-1);	// Up right
+		list[1] = getCell(x+1, y  );	// Right
+		list[2] = getCell(x+1, y+1);	// Down right
+		list[3] = getCell(x  , y+1);	// Down left
+		list[4] = getCell(x-1, y  );	// Left
+		list[5] = getCell(x-1, y-1);	// Up left
 		
 		return list;
+	}
+	
+	/**
+	 * Returns the ID of the player
+	 * @param id The character of the player, B, W or -
+	 * @return
+	 */
+	public static int getPlayerID(char id) {
+		if(id == 'B') {
+			return 2;
+		} else if(id == 'W') {
+			return 1;
+		} else if(id == '-') {
+			return 0;
+		} else {
+			return -1;
+		}
 	}
 }
