@@ -63,72 +63,126 @@ public class Board {
 			// Did we make a change?
 			boolean changed = false;
 			
+			int totalCells = this.size * this.size * 4;
+			
+			int x = 0;
+			int y = 0;
+			int dir = 0;
+			
+			int maxCount = 2*this.size;
+			int count = 0;
+			
+			boolean first = true;
+			
 			// Loop over every square
-			for(int y = 0; y<2*this.size;y++) {
-				for(int x=0; x<2*this.size; x++) {
-					// Grab a cell
-					Cell cell = this.getCell(x, y);
+			for(int j=0; j<totalCells; j++) {				
+				// Grab a cell
+				Cell cell = this.getCell(x, y);
+				
+				// Make sure it is valid (and not red)
+				if(cell != null && !cell.isRed() && cell.getPlayer() != PLAYER_NONE) {
+					// Grab all adj cells
+					Cell[] adj = getAdj(x, y);
 					
-					// Make sure it is valid (and not red)
-					if(cell != null && !cell.isRed() && cell.getPlayer() != PLAYER_NONE) {
-						// Grab all adj cells
-						Cell[] adj = getAdj(x, y);
+					// The mode we are upto
+					int mode = 0;
+					
+					// Workout if this cell is red
+					for(int i=0; i<MAX_ADJ; i++) {
+						Cell adjCell = adj[i];
 						
-						// The mode we are upto
-						int mode = 0;
-						
-						// Workout if this cell is red
-						for(int i=0; i<MAX_ADJ; i++) {
-							Cell adjCell = adj[i];
-							
-							// Check if this cell is a block, or a gap
-							boolean block = false;
-							if(adjCell != null && cell.getPlayer() == adjCell.getPlayer() && !adjCell.isRed()) {
-								block = true;
-							}
-							
-							if(mode == 0) { // Search for block
-								// Block
-								if(block) {
-									mode = 1;
-								}
-							} else if(mode == 1) { // Searching for gap
-								// Gap
-								if(!block) {
-									mode = 2;
-								}
-							} else if(mode == 2) { // Searching for block
-								// Block
-								if(block) {
-									mode = 3;
-								}
-							} else if(mode == 3) { // Searching for gap
-								// Gap
-								if(!block) {
-									mode = 4;
-								}
-							}
+						// Check if this cell is a block, or a gap
+						boolean block = false;
+						if(adjCell != null && cell.getPlayer() == adjCell.getPlayer() && !adjCell.isRed()) {
+							block = true;
 						}
 						
-						// We need to consider the round nature of this search
-						if(mode == 3) {
-							// check initial block for gap
-							Cell adjCell = adj[0];
-							
-							// Check if this cell is a block, or a gap
-							if(adjCell == null || cell.getPlayer() != adjCell.getPlayer() || adjCell.isRed()) {
+						if(mode == 0) { // Search for block
+							// Block
+							if(block) {
+								mode = 1;
+							}
+						} else if(mode == 1) { // Searching for gap
+							// Gap
+							if(!block) {
+								mode = 2;
+							}
+						} else if(mode == 2) { // Searching for block
+							// Block
+							if(block) {
+								mode = 3;
+							}
+						} else if(mode == 3) { // Searching for gap
+							// Gap
+							if(!block) {
 								mode = 4;
 							}
 						}
+					}
+					
+					// We need to consider the round nature of this search
+					if(mode == 3) {
+						// check initial block for gap
+						Cell adjCell = adj[0];
 						
-						// If the mode is 4, this block is needed, otherwise not
-						if(mode < 4) {
-							// Mark this cell as redundent
-							cell.setRed(true);
-							
-							// Store that we made a change
-							changed = true;
+						// Check if this cell is a block, or a gap
+						if(adjCell == null || cell.getPlayer() != adjCell.getPlayer() || adjCell.isRed()) {
+							mode = 4;
 						}
+					}
+					
+					// If the mode is 4, this block is needed, otherwise not
+					if(mode < 4) {
+						// Mark this cell as redundent
+						cell.setRed(true);
+						
+						// Store that we made a change
+						changed = true;
+					}
+				}
+				
+				// Spirial
+				count++;
+				if(dir == 0) {
+					if(count < maxCount) {
+						x++;
+					} else {
+						dir = 1;
+						count = 1;
+						if(first) {
+							first = false;
+						} else {
+							maxCount--;
+						}
+					}
+				}
+				
+				if(dir == 1) {
+					if(count < maxCount) {
+						y++;
+					} else {
+						dir = 2;
+						count = 1;
+					}
+				}
+				
+				if(dir == 2) {
+					if(count < maxCount) {
+						x--;
+					} else {
+						dir = 3;
+						count = 1;
+						maxCount--;
+					}
+				}
+				
+				if(dir == 3) {
+					if(count < maxCount) {
+						y--;
+					} else {
+						dir = 0;
+						count = 1;
+						x++;
 					}
 				}
 			}
@@ -156,58 +210,56 @@ public class Board {
 		boolean tripodWhite = false;
 		
 		// Build graphs
-		for(int x=0;x<this.size;x++) {
-			for(int y=0;y<this.size;y++) {
+		for(int x=0;x<2*this.size;x++) {
+			for(int y=0;y<2*this.size;y++) {
 				Cell cell = getCell(x, y);
 				
 				// Check if there is a player in this cell
-				if(cell.getPlayer() != 0) {
-					if(cell != null) {
-						// Check for loops
-						if(!cell.isRed()) {
-							// Found a loop
-							if(cell.getPlayer() == PLAYER_WHITE) {
-								loopWhite = true;
-							} else if(cell.getPlayer() == PLAYER_BLACK) {
-								loopBlack = true;
+				if(cell != null && cell.getPlayer() != 0) {
+					// Check for loops
+					if(!cell.isRed()) {
+						// Found a loop
+						if(cell.getPlayer() == PLAYER_WHITE) {
+							loopWhite = true;
+						} else if(cell.getPlayer() == PLAYER_BLACK) {
+							loopBlack = true;
+						}
+					}
+					
+					// Grab all the adj cells
+					Cell[] adj = getAdj(x, y);
+					
+					// Loop over every cell
+					for(int i=0;i<MAX_ADJ;i++) {
+						Cell adjCell = adj[i];
+						
+						// Check if they are the same player
+						if(adjCell != null && adjCell.getPlayer() == cell.getPlayer()) {
+							if(adjCell.getTripodGraph() != null) {
+								cell.setTripodGraph(adjCell.getTripodGraph());
+								break;
 							}
 						}
-						
-						// Grab all the adj cells
-						Cell[] adj = getAdj(x, y);
-						
-						// Loop over every cell
-						for(int i=0;i<MAX_ADJ;i++) {
-							Cell adjCell = adj[i];
-							
-							// Check if they are the same player
-							if(adjCell != null && adjCell.getPlayer() == cell.getPlayer()) {
-								if(adjCell.getTripodGraph() != null) {
-									cell.setTripodGraph(adjCell.getTripodGraph());
-									break;
-								}
-							}
-						}
-						
-						// If no tripod exists, make one
-						if(cell.getTripodGraph() == null) {
-							cell.setTripodGraph(new TripodGraph(cell.getPlayer()));
-						}
-						
-						
-						TripodGraph tr = cell.getTripodGraph();
-						
-						// Mark this side of the tripod as touched
-						tr.touchSide(this.getSide(x, y));
-						
-						// Check if this tripod has 3 sides or more
-						if(tr.getEdgeCount() >= 3) {
-							// Found tripod
-							if(cell.getPlayer() == PLAYER_WHITE) {
-								tripodWhite = true;
-							} else if(cell.getPlayer() == PLAYER_BLACK) {
-								tripodBlack = true;
-							}
+					}
+					
+					// If no tripod exists, make one
+					if(cell.getTripodGraph() == null) {
+						cell.setTripodGraph(new TripodGraph(cell.getPlayer()));
+					}
+					
+					
+					TripodGraph tr = cell.getTripodGraph();
+					
+					// Mark this side of the tripod as touched
+					tr.touchSide(this.getSide(x, y));
+					
+					// Check if this tripod has 3 sides or more
+					if(tr.getEdgeCount() >= 3) {
+						// Found tripod
+						if(cell.getPlayer() == PLAYER_WHITE) {
+							tripodWhite = true;
+						} else if(cell.getPlayer() == PLAYER_BLACK) {
+							tripodBlack = true;
 						}
 					}
 				
@@ -352,6 +404,36 @@ public class Board {
 	 * @return The ID of the side this cell touches, or 0 for no side
 	 */
 	public int getSide(int x, int y) {
+		if(x == 0) { // Top left side
+			if(y > 0 && y < this.size-2) {
+				return 1;
+			}
+		}
+		if(y == 0) { // Top Side
+			if(x > 0 && x < this.size-2) {
+				return 2;
+			}
+		}
+		if(x == this.getRowSize(y)-1) { // Top right
+			if(y > 0 && y < this.size-1) {
+				return 4;
+			}
+		}
+		if(x == 2*(this.size-1)) { // Bottom right
+			if(y > this.size-1 && y < (this.size-1)*2) {
+				return 8;
+			}
+		}
+		if(y == 2*(this.size-1)) { // Bottom Side
+			if(x >= this.size && x < 2*(this.size-1)) {
+				return 16;
+			}
+		}
+		if(x == this.getFirstX(y)) { // Bottom left
+			if(y < 2*(this.size-1) && y > this.size-1) {
+				return 32;
+			}
+		}
 		return 0;
 	}
 	
