@@ -7,6 +7,9 @@ import java.util.Scanner;
  *
  */
 public class Main {
+	/** The minimal size of a board */
+	public static final int MIN_BOARD_SIZE = 1;
+	
 	/**
 	 * The main entry point into our program
 	 * @param args The argument list parsed into the program
@@ -18,6 +21,18 @@ public class Main {
 		// Find the size of the board
 		String line = sc.nextLine();
 		int size = Integer.parseInt(line);
+		
+		// Validate the size
+		if(size < MIN_BOARD_SIZE) {
+			// Close scanner
+			sc.close();
+			
+			// Print error here
+			System.out.print("Size must be at least "+MIN_BOARD_SIZE);
+			
+			// Exit
+			return;
+		}
 		
 		// Create new board
 		Board board = new Board(size);
@@ -37,7 +52,7 @@ public class Main {
 				sc.close();
 				
 				// Print error here
-				System.out.print("Invalid input, line "+y+" is the wrong length!");
+				System.out.print("Invalid input, line "+(y+2)+" is the wrong length (Got "+line.length()+", expected "+rowSize+")");
 				
 				// Exit
 				return;
