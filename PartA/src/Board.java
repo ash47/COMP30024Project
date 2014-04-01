@@ -105,7 +105,12 @@ public class Board {
 	 * @return The first valid x position for the given y, or -1 for no valid positions
 	 */
 	public int getFirstX(int y) {
-		return 0;
+		// Increasing curve
+		if(y < this.size) {
+			return 0;
+		} else {
+			return y - this.size;
+		}
 	}
 	
 	/**
@@ -114,7 +119,13 @@ public class Board {
 	 * @return The size of a given row
 	 */
 	public int getRowSize(int y) {
-		return 0;
+		// Increasing curve
+		if(y < this.size) {
+			return this.size + y;
+		}
+		
+		// Decreasing curve
+		return 2*this.size - (y - this.size) - 2;
 	}
 	
 	/**
