@@ -63,13 +63,13 @@ public class Board {
 			// Did we make a change?
 			boolean changed = false;
 			
-			int totalCells = this.size * this.size * 4;
+			int totalCells = (this.size-1) * (this.size-1) * 4;
 			
 			int x = 0;
 			int y = 0;
 			int dir = 0;
 			
-			int maxCount = 2*this.size;
+			int maxCount = 2*(this.size-1)+1;
 			int count = 0;
 			
 			boolean first = true;
