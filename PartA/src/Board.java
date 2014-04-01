@@ -1,4 +1,3 @@
-
 /**
  * Main board class
  * @author aschmid
@@ -31,6 +30,9 @@ public class Board {
 	/** The token for black player */
 	public static final char PLAYER_BLACK_TOKEN = 'B';
 	
+	/** The max number of adacencies possible */
+	public static final int MAX_ADJ = 6;
+	
 	/**
 	 * @param size The size of the board
 	 */
@@ -57,7 +59,91 @@ public class Board {
 	 * Marks each cell as either redundent or not
 	 */
 	public void markRed() {
-		// Mark stuff
+		while(true) {
+			System.out.println("Loop");
+			
+			// Did we make a change?
+			boolean changed = false;
+			
+			// Loop over every square
+			for(int y = 0; y<2*this.size;y++) {
+				for(int x=0; x<2*this.size; x++) {
+					// Grab a cell
+					Cell cell = this.getCell(x, y);
+					
+					// Make sure it is valid (and not red)
+					if(cell != null && !cell.isRed() && cell.getPlayer() != PLAYER_NONE) {
+						// Grab all adj cells
+						Cell[] adj = getAdj(x, y);
+						
+						// The mode we are upto
+						int mode = 0;
+						
+						// Workout if this cell is red
+						for(int i=0; i<MAX_ADJ; i++) {
+							Cell adjCell = adj[i];
+							
+							// Check if this cell is a block, or a gap
+							boolean block = false;
+							if(adjCell != null && cell.getPlayer() == adjCell.getPlayer() && !adjCell.isRed()) {
+								block = true;
+							}
+							
+							if(mode == 0) { // Search for block
+								// Block
+								if(block) {
+									mode = 1;
+								}
+							} else if(mode == 1) { // Searching for gap
+								// Gap
+								if(!block) {
+									mode = 2;
+								}
+							} else if(mode == 2) { // Searching for block
+								// Block
+								if(block) {
+									mode = 3;
+								}
+							} else if(mode == 3) { // Searching for gap
+								// Gap
+								if(!block) {
+									mode = 4;
+								}
+							}
+						}
+						
+						// We need to consider the round nature of this search
+						if(mode == 3) {
+							// check initial block for gap
+							Cell adjCell = adj[0];
+							
+							// Check if this cell is a block, or a gap
+							if(adjCell == null || cell.getPlayer() != adjCell.getPlayer() || adjCell.isRed()) {
+								mode = 4;
+							}
+						}
+						
+						// If the mode is 4, this block is needed, otherwise not
+						if(mode < 4) {
+							// Mark this cell as redundent
+							cell.setRed(true);
+							
+							// Store that we made a change
+							changed = true;
+							
+							System.out.println("found red");
+							System.out.println(cell.getPlayer());
+						}
+					}
+				}
+			}
+			
+			// Check if no change was made
+			if(!changed) {
+				break;
+			}
+		}
+		
 	}
 	
 	/**
@@ -73,27 +159,23 @@ public class Board {
 				Cell cell = getCell(x, y);
 				
 				// Check if there is a player in this cell
-				if(cell.player != 0) {
+				if(cell.getPlayer() != 0) {
 					if(cell != null) {
 						Cell[] adj = getAdj(x, y);
 						
-						for(int i=0;i<6;i++) {
+						for(int i=0;i<MAX_ADJ;i++) {
 							Cell adjCell = adj[i];
 							
 							// Check if they are the same player
-							if(adjCell != null && adjCell.player == cell.player) {
-								if(!cell.red) {
-									if(!adjCell.red && adjCell.loopGraph != null) {
-										cell.loopGraph = adjCell.loopGraph;
-									} else {
-										cell.loopGraph = new LoopGraph(cell.player);
-									}
+							if(adjCell != null && adjCell.getPlayer() == cell.getPlayer()) {
+								if(!cell.isRed()) {
+									System.out.println("Found a loop!");
 								}
 								
 								if(adjCell.tripodGraph != null) {
 									cell.tripodGraph = adjCell.tripodGraph;
 								} else {
-									cell.tripodGraph = new TripodGraph(cell.player);
+									cell.tripodGraph = new TripodGraph(cell.getPlayer());
 								}
 							}
 						}
@@ -197,11 +279,11 @@ public class Board {
 	 * Gets all the adjacent cells
 	 * @param x The x coordinate of the cell to get adjacencies for
 	 * @param y The y coordinate of the cell to get adjacencies for
-	 * @return An array of size 6, containing the adjacent cells, cells will be null if they dont exist
+	 * @return An array of size MAX_ADJ, containing the adjacent cells, cells will be null if they dont exist
 	 */
 	public Cell[] getAdj(int x, int y) {
 		// Create list for cells
-		Cell[] list = new Cell[6];
+		Cell[] list = new Cell[MAX_ADJ];
 		
 		// Build list
 		list[0] = getCell(x  , y-1);	// Up right
