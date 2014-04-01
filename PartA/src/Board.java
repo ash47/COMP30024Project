@@ -1,6 +1,6 @@
 /**
  * Main board class
- * @author aschmid
+ * @author aschmid, rport
  */
 public class Board {
 	/** These are the cells of the board */

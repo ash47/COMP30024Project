@@ -1,7 +1,7 @@
 
 /**
  * The base class for all our graphs
- * @author aschmid
+ * @author aschmid, rport
  *
  */
 public class Graph {

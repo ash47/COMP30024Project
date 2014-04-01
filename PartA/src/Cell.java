@@ -1,7 +1,7 @@
 
 /**
  * This class represents a cell on the board
- * @author aschmid
+ * @author aschmid, rport
  *
  */
 public class Cell {

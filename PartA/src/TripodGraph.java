@@ -1,7 +1,7 @@
 
 /**
  * A graph that represents tripods
- * @author aschmid
+ * @author aschmid, rport
  *
  */
 public class TripodGraph extends Graph {
