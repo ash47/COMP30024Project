@@ -5,6 +5,9 @@ COMP30024 Artificial Intelligence
  - Some change
 
 ###Test Cases###
+
+
+Black wins loop
 ```
 5
 BB---
@@ -18,6 +21,7 @@ B-B---
 --W--
 ```
 
+Black wins both
 ```
 5
 BBBBB
@@ -29,4 +33,105 @@ BBBBBBBB
 BBBBBBB
 BBBBBB
 BBBBB
+```
+
+Draw, black loop, white tripod
+```
+5
+    B B - - - 
+   B - B - - - 
+  - B - B - - W 
+ - - B B - - W - 
+- - - - - - W - - 
+ W W - - W W - - 
+  - W W W - - - 
+   - - W - - - 
+    - W - - - 
+```
+
+Black wins loop
+```
+5
+    B B - - - 
+   B - B - - - 
+  - B - B - - - 
+ - - B B - - - - 
+- - - - - - W - - 
+ W W - - W W - - 
+  - W W - - W - 
+   - - W - - W 
+    - W - - - 
+
+```
+
+No winner
+```
+5
+    B B - - - 
+   B - B - - - 
+  - - - B - - - 
+ - - B B - - - - 
+- - - - - - W - - 
+ W W - - W - - - 
+  - W W - - - - 
+   - - W - - - 
+    - W - - - 
+
+```
+
+No winner
+```
+5
+    B B - - - 
+   B - B - - - 
+  - - - B - - - 
+ - - B B - - - - 
+- - - - - - W - - 
+ W W - - W - - - 
+  - W - - - - - 
+   - - - - - - 
+    - W - - - 
+
+```
+
+Invalid input (line 5 is wrong length, got length 10, expected 9)
+```
+5
+    B B - - - 
+   B - B - - - 
+  - - - B - - - 
+ - - B B - - - - 
+- - - - - - W - - -
+ W W - - W - - - 
+  - W - - - - - 
+   - - - - - - 
+    - W - - - 
+```
+
+Invalid input (line 1 is wrong length, got length 6, expected 1)
+```
+5
+    B B - - - -
+   B - B - - - -
+  - - - B - - - -
+ - - B B - - - - -
+- - - - - - W - - -
+ W W - - W - - - -
+  - W - - - - - -
+   - - - - - - -
+    - W - - - -
+```
+
+Invalid input (Unknown player token on line 1 (Got C))
+```
+5
+    B B C - - 
+   B - B - - - 
+  - - - B - - - 
+ - - B B - - - - 
+- - - - - - W - - 
+ W W - - W - - - 
+  - W - - - - - 
+   - - - - - - 
+    - W - - - 
 ```

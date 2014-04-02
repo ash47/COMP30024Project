@@ -291,7 +291,7 @@ public class Board {
 				}
 				return true;
 			}
-			//When draw, added how each player won
+			//When draw, how each player won
 			if(!loopBlack) {
 				// Tripod black won
 				System.out.print("Black: ");
@@ -376,7 +376,7 @@ public class Board {
 		if(y < this.size) {
 			return 0;
 		} else {
-			return y - this.size;
+			return y - ((this.size) - 1);
 		}
 	}
 	
