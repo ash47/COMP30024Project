@@ -289,6 +289,35 @@ public class Board {
 					System.out.println(Main.MESSAGE_BLACK_WINS);
 					System.out.println(Main.MESSAGE_BOTH_WINS);
 				}
+				return true;
+			}
+			//When draw, added how each player won
+			if(!loopBlack) {
+				// Tripod black won
+				System.out.print("Black: ");
+				System.out.println(Main.MESSAGE_TRIPOD_WINS);
+			} else if(!tripodBlack) {
+				// Loop black won
+				System.out.print("Black: ");
+				System.out.println(Main.MESSAGE_LOOP_WINS);
+			} else {
+				// Both black won
+				System.out.print("Black: ");
+				System.out.println(Main.MESSAGE_BOTH_WINS);
+			}
+			if(!loopWhite) {
+				// Tripod white won
+				System.out.print("White: ");
+				System.out.println(Main.MESSAGE_TRIPOD_WINS);
+			} else if(!tripodWhite) {
+				// Loop white won
+				System.out.print("White: ");
+				System.out.println(Main.MESSAGE_LOOP_WINS);
+				
+			} else {
+				// Both white won
+				System.out.print("White: ");
+				System.out.println(Main.MESSAGE_BOTH_WINS);
 			}
 			return true;
 		} else {

@@ -62,7 +62,7 @@ public class Main {
 		boolean allTaken = true;
 		
 		// Read input
-		for(int y=0; y<size; y++) {
+		for(int y=0; y< (2*size - 1); y++) {
 			// Get info for this row
 			int x = board.getFirstX(y);
 			int rowSize = board.getRowSize(y);
