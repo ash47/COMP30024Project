@@ -434,12 +434,12 @@ public class Board {
 	 */
 	public int getSide(int x, int y) {
 		if(x == 0) { // Top left side
-			if(y > 0 && y < this.size-2) {
+			if(y > 0 && y < this.size-1) {
 				return 1;
 			}
 		}
 		if(y == 0) { // Top Side
-			if(x > 0 && x < this.size-2) {
+			if(x > 0 && x < this.size-1) {
 				return 2;
 			}
 		}
@@ -508,7 +508,9 @@ public class Board {
 		}
 	}
 	
-	//prints the board nicely :)
+	/**
+	 * Prints the board nicely :)
+	 */
 	public void print(){
 		char[] char_array = new char[3];
 		char_array[0] = PLAYER_NONE_TOKEN;
@@ -531,6 +533,43 @@ public class Board {
 				if(current != null)
 				{
 					System.out.print(char_array[current.getPlayer()]);
+					System.out.print(' ');
+				}
+			}
+			
+			//prints new line for the next row
+			System.out.println();
+		}
+	}
+	/**
+	 * Prints the sides of the board (for testing purposes)
+	 */
+	public void printsides(){
+		char[] char_array = new char[33];
+		char_array[0] = PLAYER_NONE_TOKEN;
+		char_array[1] = '1';
+		char_array[2] = '2';
+		char_array[4] = '3';
+		char_array[8] = '4';
+		char_array[16] = '5';
+		char_array[32] = '6';
+		
+		//Iterates over whole board printing out each token
+		for(int y = 0; y < 2*size - 1; y++)
+		{
+			//Adds space buffer for nice hexagon effect
+			for(int i = 0; i < Math.abs((size - 1) - y); i++)
+			{
+				System.out.print(' ');
+			}
+			
+			//prints the tokens for the row
+			for(int x = 0; x < 2*size - 1; x++)
+			{
+				Cell current = getCell(x,y);
+				if(current != null)
+				{
+					System.out.print(char_array[getSide(x,y)]);
 					System.out.print(' ');
 				}
 			}

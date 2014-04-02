@@ -126,7 +126,10 @@ public class Main {
 				System.out.println(MESSAGE_NONE);
 			}
 		}
+		//Print out the board
 		board.print();
+		//Print the board sides (for testing purposes)
+		//board.printsides();
 		
 		// Check for the win
 		
