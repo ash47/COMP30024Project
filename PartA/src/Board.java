@@ -478,4 +478,36 @@ public class Board {
 			return PLAYER_UNKNOWN;
 		}
 	}
+	
+	//prints the board nicely :)
+	public void print(){
+		char[] char_array = new char[3];
+		char_array[0] = PLAYER_NONE_TOKEN;
+		char_array[1] = PLAYER_WHITE_TOKEN;
+		char_array[2] = PLAYER_BLACK_TOKEN;
+		
+		//Iterates over whole board printing out each token
+		for(int y = 0; y < 2*size - 1; y++)
+		{
+			//Adds space buffer for nice hexagon effect
+			for(int i = 0; i < Math.abs((size - 1) - y); i++)
+			{
+				System.out.print(' ');
+			}
+			
+			//prints the tokens for the row
+			for(int x = 0; x < 2*size - 1; x++)
+			{
+				Cell current = getCell(x,y);
+				if(current != null)
+				{
+					System.out.print(char_array[current.getPlayer()]);
+					System.out.print(' ');
+				}
+			}
+			
+			//prints new line for the next row
+			System.out.println();
+		}
+	}
 }

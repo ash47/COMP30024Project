@@ -112,7 +112,7 @@ public class Main {
 		// Check if every square is taken (mark flag)
 		
 		// Fill cells in
-		
+		System.out.println();
 		// Build the graphs'
 		if(!board.checkForWinner()) {
 			// If there is no clear winner and everything is taken
@@ -124,6 +124,7 @@ public class Main {
 				System.out.println(MESSAGE_NONE);
 			}
 		}
+		board.print();
 		
 		// Check for the win
 		
