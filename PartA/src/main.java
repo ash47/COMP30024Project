@@ -69,6 +69,8 @@ public class Main {
 			
 			// Read the next line
 			line = sc.nextLine();
+			//Trims all the whitespace from the input line
+			line = line.replaceAll("\\s","");
 			
 			// Valid is the this line
 			if(line.length() != rowSize) {
