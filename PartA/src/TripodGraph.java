@@ -11,6 +11,12 @@ public class TripodGraph extends Graph {
 	/** This stores which sides have been touched by our graph */
 	private int sides;
 	
+	/** Used to allocate every tripod a unique ID */
+	private static int totalTripods = 0;
+	
+	/** This tripod's ID */
+	public int tripodID;
+	
 	/**
 	 * Creates a new tripod graph
 	 * @param player The ID of the player who owns this graph
@@ -18,6 +24,9 @@ public class TripodGraph extends Graph {
 	public TripodGraph(int player) {
 		super(player);
 		this.edgeCount = 0;
+		
+		// Allocate an ID to this tripod
+		this.tripodID = ++totalTripods;
 	}
 	
 	/**

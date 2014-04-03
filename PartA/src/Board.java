@@ -568,11 +568,55 @@ public class Board {
 				if(current != null) {
 					if(current.isRed()){
 						System.out.print('-');
-					}
-					else{
+					} else {
 						System.out.print(char_array[current.getPlayer()]);						
 					}
 					System.out.print(' ');
+				}
+			}
+			
+			//prints new line for the next row
+			System.out.println();
+		}
+	}
+	
+	public void printTripods() {
+		char[] char_array = new char[3];
+		char_array[0] = PLAYER_NONE_TOKEN;
+		char_array[1] = PLAYER_WHITE_TOKEN;
+		char_array[2] = PLAYER_BLACK_TOKEN;
+		
+		//Iterates over whole board printing out each token
+		for(int y = 0; y < 2*size - 1; y++) {
+			//Adds space buffer for nice hexagon effect
+			for(int i = 0; i < Math.abs((size - 1) - y); i++) {
+				System.out.print("    ");
+			}
+			
+			//prints the tokens for the row
+			for(int x = 0; x < 2*size - 1; x++) {
+				Cell current = getCell(x,y);
+				if(current != null) {
+					TripodGraph tr = current.getTripodGraph();
+					if(tr == null) {
+						System.out.print(" ----- ");
+					} else {
+						int num = current.getTripodGraph().tripodID;
+						String str = Integer.toString(num);
+						if(num < 10) {
+							str = " --"+str+"-- ";
+						} else if(num < 100) {
+							str = " -"+str+"-- ";
+						} else if(num < 1000) {
+							str = " -"+str+"- ";
+						} else if(num < 10000) {
+							str = " "+str+"- ";
+						} else {
+							str = " "+str+" ";
+						}
+						
+						System.out.print(str);
+					}
 				}
 			}
 			

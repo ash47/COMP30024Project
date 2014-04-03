@@ -137,5 +137,7 @@ public class Main {
 		board.print();
 		System.out.println();
 		board.printLoops();
+		System.out.println();
+		board.printTripods();
 	}
 }
