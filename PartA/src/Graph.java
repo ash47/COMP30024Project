@@ -10,12 +10,6 @@ public class Graph {
 	/** A cell in this graph */
 	public Cell start;
 	
-	/** Number of cells in this  graph */
-	//private int totalCells;
-	
-	/** The player this graph belongs to */
-	//private int player;
-	
 	/** A list of cells in this graph */
 	private ArrayList<Cell> cellList;
 	
@@ -24,9 +18,7 @@ public class Graph {
 	 * @param player The player ID that owns this graph
 	 */
 	public Graph(int player) {
-		// Init variables
-		//this.totalCells = 0;
-		//this.player = player;
+		// Init cell list
 		this.cellList = new ArrayList<Cell>();
 	}
 	
