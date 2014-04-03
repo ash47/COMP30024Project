@@ -135,6 +135,7 @@ public class Main {
 		
 		// Print out the board for testing
 		board.print();
+		System.out.println();
 		board.printLoops();
 	}
 }

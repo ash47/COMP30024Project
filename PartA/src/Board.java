@@ -63,7 +63,8 @@ public class Board {
 			// Did we make a change?
 			boolean changed = false;
 			
-			int totalCells = (this.size-1) * (this.size-1) * 4;
+			int totalRows = (this.size-1)*2 + 1;
+			int totalCells = totalRows*totalRows;
 			
 			int x = 0;
 			int y = 0;
@@ -74,8 +75,13 @@ public class Board {
 			
 			boolean first = true;
 			
+			//System.out.println("Loop");
+			
 			// Loop over every square
-			for(int j=0; j<totalCells; j++) {				
+			for(int j=0; j<totalCells; j++) {
+				// debug
+				//System.out.println("("+x+", "+y+")");
+				
 				// Grab a cell
 				Cell cell = this.getCell(x, y);
 				
