@@ -4,10 +4,10 @@
  */
 public class Board {
 	/** These are the cells of the board */
-	public Cell[][] cells;
+	private Cell[][] cells;
 	
 	/** The size of the board */
-	public int size;
+	private int size;
 	
 	/** The id of aN unknown player (invalid input) */
 	public static final int PLAYER_UNKNOWN = -1;
@@ -229,24 +229,25 @@ public class Board {
 					// Grab all the adj cells
 					Cell[] adj = getAdj(x, y);
 					
+					// Create a new tripod graph for this cell
+					cell.setTripodGraph(new TripodGraph(cell.getPlayer()));
+					
 					// Loop over every cell
 					for(int i=0;i<MAX_ADJ;i++) {
 						Cell adjCell = adj[i];
 						
 						// Check if they are the same player
 						if(adjCell != null && adjCell.getPlayer() == cell.getPlayer()) {
-							if(adjCell.getTripodGraph() != null) {
-								cell.setTripodGraph(adjCell.getTripodGraph());
-								break;
+							// Get the adj's tripod
+							TripodGraph adjTripod = adjCell.getTripodGraph();
+							
+							// Check if it has one
+							if(adjTripod != null) {
+								// Merge tripod
+								adjTripod.mergeGraph(cell.getTripodGraph());
 							}
 						}
 					}
-					
-					// If no tripod exists, make one
-					if(cell.getTripodGraph() == null) {
-						cell.setTripodGraph(new TripodGraph(cell.getPlayer()));
-					}
-					
 					
 					TripodGraph tr = cell.getTripodGraph();
 					
@@ -275,6 +276,7 @@ public class Board {
 			if(loopWhite || tripodWhite) {
 				// Draw
 				System.out.println(Main.MESSAGE_DRAW);
+				System.out.println(Main.MESSAGE_DRAW_STATE);
 			} else {
 				if(!loopBlack) {
 					// Tripod black won
@@ -299,32 +301,21 @@ public class Board {
 			 */
 			
 			//When draw, how each player won
-			if(!loopBlack) {
+			if(tripodBlack) {
 				// Tripod black won
-				System.out.print("Black: ");
-				System.out.println(Main.MESSAGE_TRIPOD_WINS);
-			} else if(!tripodBlack) {
-				// Loop black won
-				System.out.print("Black: ");
-				System.out.println(Main.MESSAGE_LOOP_WINS);
-			} else {
-				// Both black won
-				System.out.print("Black: ");
-				System.out.println(Main.MESSAGE_BOTH_WINS);
+				System.out.println("Black tripod");
 			}
-			if(!loopWhite) {
+			if(loopBlack) {
+				// Loop black won
+				System.out.println("Black loop");
+			}
+			if(tripodWhite) {
 				// Tripod white won
-				System.out.print("White: ");
-				System.out.println(Main.MESSAGE_TRIPOD_WINS);
-			} else if(!tripodWhite) {
+				System.out.println("White tripod");
+			}
+			if(loopWhite) {
 				// Loop white won
-				System.out.print("White: ");
-				System.out.println(Main.MESSAGE_LOOP_WINS);
-				
-			} else {
-				// Both white won
-				System.out.print("White: ");
-				System.out.println(Main.MESSAGE_BOTH_WINS);
+				System.out.println("White loop");
 			}
 			
 			/**
@@ -532,20 +523,16 @@ public class Board {
 		char_array[2] = PLAYER_BLACK_TOKEN;
 		
 		//Iterates over whole board printing out each token
-		for(int y = 0; y < 2*size - 1; y++)
-		{
+		for(int y = 0; y < 2*size - 1; y++) {
 			//Adds space buffer for nice hexagon effect
-			for(int i = 0; i < Math.abs((size - 1) - y); i++)
-			{
+			for(int i = 0; i < Math.abs((size - 1) - y); i++) {
 				System.out.print(' ');
 			}
 			
 			//prints the tokens for the row
-			for(int x = 0; x < 2*size - 1; x++)
-			{
+			for(int x = 0; x < 2*size - 1; x++) {
 				Cell current = getCell(x,y);
-				if(current != null)
-				{
+				if(current != null) {
 					System.out.print(char_array[current.getPlayer()]);
 					System.out.print(' ');
 				}
@@ -555,10 +542,38 @@ public class Board {
 			System.out.println();
 		}
 	}
+	
+	public void printLoops() {
+		char[] char_array = new char[3];
+		char_array[0] = PLAYER_NONE_TOKEN;
+		char_array[1] = PLAYER_WHITE_TOKEN;
+		char_array[2] = PLAYER_BLACK_TOKEN;
+		
+		//Iterates over whole board printing out each token
+		for(int y = 0; y < 2*size - 1; y++) {
+			//Adds space buffer for nice hexagon effect
+			for(int i = 0; i < Math.abs((size - 1) - y); i++) {
+				System.out.print(' ');
+			}
+			
+			//prints the tokens for the row
+			for(int x = 0; x < 2*size - 1; x++) {
+				Cell current = getCell(x,y);
+				if(current != null && !current.isRed()) {
+					System.out.print(char_array[current.getPlayer()]);
+					System.out.print(' ');
+				}
+			}
+			
+			//prints new line for the next row
+			System.out.println();
+		}
+	}
+	
 	/**
 	 * Prints the sides of the board (for testing purposes)
 	 */
-	public void printsides(){
+	public void printSides() {
 		char[] char_array = new char[33];
 		char_array[0] = PLAYER_NONE_TOKEN;
 		char_array[1] = '1';
@@ -569,20 +584,16 @@ public class Board {
 		char_array[32] = '6';
 		
 		//Iterates over whole board printing out each token
-		for(int y = 0; y < 2*size - 1; y++)
-		{
+		for(int y = 0; y < 2*size - 1; y++) {
 			//Adds space buffer for nice hexagon effect
-			for(int i = 0; i < Math.abs((size - 1) - y); i++)
-			{
+			for(int i = 0; i < Math.abs((size - 1) - y); i++) {
 				System.out.print(' ');
 			}
 			
 			//prints the tokens for the row
-			for(int x = 0; x < 2*size - 1; x++)
-			{
+			for(int x = 0; x < 2*size - 1; x++) {
 				Cell current = getCell(x,y);
-				if(current != null)
-				{
+				if(current != null) {
 					System.out.print(char_array[getSide(x,y)]);
 					System.out.print(' ');
 				}

@@ -6,10 +6,10 @@
  */
 public class TripodGraph extends Graph {
 	/** The number of edges this graph is touching */
-	public int edgeCount;
+	private int edgeCount;
 	
 	/** This stores which sides have been touched by our graph */
-	public int sides;
+	private int sides;
 	
 	/**
 	 * Creates a new tripod graph
@@ -50,5 +50,35 @@ public class TripodGraph extends Graph {
 	 */
 	public int getEdgeCount() {
 		return this.edgeCount;
+	}
+	
+	public void mergeGraph(Graph graph) {
+		// Do the normal merge
+		super.mergeGraph(graph);
+		
+		// Update all cell's tripods
+		for(Cell cell : this.getCells()) {
+			cell.setTripodGraph(this);
+		}
+		
+		// Check if we merged a tripod graph
+		if(graph instanceof TripodGraph) {
+			// Cast a tripod graph
+			TripodGraph tripod = (TripodGraph)graph;
+			
+			int side = 1;
+			
+			// Merge touched sides
+			for(int i=0; i<Board.MAX_ADJ; i++) {
+				// Check if this side is touched
+				if(tripod.isSideTouched(side)) {
+					// Touch that side on this graph
+					this.touchSide(side);
+				}
+				
+				// Move onto the next side
+				side *= 2;
+			}
+		}
 	}
 }

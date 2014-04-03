@@ -134,6 +134,7 @@ public class Main {
 		}
 		//Print out the board
 		board.print();
+		board.printLoops();
 		//Print the board sides (for testing purposes)
 		//board.printsides();
 		
