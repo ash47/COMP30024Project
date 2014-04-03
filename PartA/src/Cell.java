@@ -27,6 +27,10 @@ public class Cell {
 	 * @param tripodGraph The graph to merge this cell into
 	 */
 	public void setTripodGraph(TripodGraph tripodGraph) {
+		// Attempt to add to the graph
+		tripodGraph.addCell(this);
+		
+		// Update our current tripopd graph
 		this.tripodGraph = tripodGraph;
 	}
 

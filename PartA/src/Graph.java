@@ -38,7 +38,6 @@ public class Graph {
 		// Check if this cell is already in the cell
 		for(Cell cell : this.cellList) {
 			if(cell == newCell) {
-				System.out.println("dupe!");
 				return;
 			}
 		}

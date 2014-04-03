@@ -62,11 +62,8 @@ public class TripodGraph extends Graph {
 	}
 	
 	public void mergeGraph(Graph graph) {
-		// Do the normal merge
-		super.mergeGraph(graph);
-		
 		// Update all cell's tripods
-		for(Cell cell : this.getCells()) {
+		for(Cell cell : graph.getCells()) {
 			cell.setTripodGraph(this);
 		}
 		
