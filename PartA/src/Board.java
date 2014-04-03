@@ -291,6 +291,13 @@ public class Board {
 				}
 				return true;
 			}
+			
+			/**
+			 * 
+			 * THIS IS FOR DEBUGGING ONLY, REMOVE THIS BEFORE YOU SUBMIT!
+			 * 
+			 */
+			
 			//When draw, how each player won
 			if(!loopBlack) {
 				// Tripod black won
@@ -319,6 +326,13 @@ public class Board {
 				System.out.print("White: ");
 				System.out.println(Main.MESSAGE_BOTH_WINS);
 			}
+			
+			/**
+			 * 
+			 * END DEBUGGING BLOCK
+			 * 
+			 */
+			
 			return true;
 		} else {
 			// Black lost, white unknown

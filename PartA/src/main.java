@@ -13,6 +13,9 @@ public class Main {
 	/** The message to output when a draw happens */
 	public static final String MESSAGE_DRAW = "Draw";
 	
+	/** The other message to output when a draw happens */
+	public static final String MESSAGE_DRAW_STATE = "Nil";
+	
 	/** The message to output when there isn't a winning state */
 	public static final String MESSAGE_NONE = "None";
 	
@@ -125,6 +128,9 @@ public class Main {
 				// No winner, and game still has spots left
 				System.out.println(MESSAGE_NONE);
 			}
+			
+			//  Print nil state
+			System.out.println(MESSAGE_DRAW_STATE);
 		}
 		//Print out the board
 		board.print();
