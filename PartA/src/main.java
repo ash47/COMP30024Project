@@ -132,18 +132,9 @@ public class Main {
 			//  Print nil state
 			System.out.println(MESSAGE_DRAW_STATE);
 		}
-		//Print out the board
+		
+		// Print out the board for testing
 		board.print();
 		board.printLoops();
-		//Print the board sides (for testing purposes)
-		//board.printsides();
-		
-		// Check for the win
-		
-		// Check tripods, simply look at the edgeCount >= 3
-		
-		// Check for loops in the loop graph
-		
-		// Output if someone won or not
 	}
 }
