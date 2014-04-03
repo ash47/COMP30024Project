@@ -34,6 +34,9 @@ public class Main {
 	/** The message to output when a tripod and a loop wins */
 	public static final String MESSAGE_BOTH_WINS = "Both";
 	
+	/** Are we in debug mode? */
+	public static final boolean debug = false;
+
 	/**
 	 * The main entry point into our program
 	 * @param args The argument list parsed into the program
@@ -114,11 +117,7 @@ public class Main {
 		// Close the scanner
 		sc.close();
 		
-		// Check if every square is taken (mark flag)
-		
-		// Fill cells in
-		System.out.println();
-		// Build the graphs'
+		// Check for a winner
 		if(!board.checkForWinner()) {
 			// If there is no clear winner and everything is taken
 			if(allTaken) {
@@ -133,11 +132,26 @@ public class Main {
 			System.out.println(MESSAGE_DRAW_STATE);
 		}
 		
-		// Print out the board for testing
-		board.print();
-		System.out.println();
-		board.printLoops();
-		System.out.println();
-		board.printTripods();
+		// Check if debug mode is on
+		if(isDebug()) {
+			// Print boards
+			System.out.println("Board as people see it:");
+			board.print();
+			System.out.println("Loops that exist:");
+			board.printLoops();
+			System.out.println("Tripod numbers:");
+			board.printTripods();
+			
+			// Print huge warning that debug is on
+			System.out.println("\nWARNING: DEBUG MODE IS ON! DO NOT SUBMIT!");
+		}
+	}
+	
+	/**
+	 * Checks if we are in debug mode
+	 * @return If debug mode is on or not
+	 */
+	public static boolean isDebug() {
+		return debug;
 	}
 }

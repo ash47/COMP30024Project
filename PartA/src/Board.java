@@ -59,29 +59,33 @@ public class Board {
 	 * Marks each cell as either redundent or not
 	 */
 	public void markRed() {
+		// Keep marking cells as red until no more changes are made
 		while(true) {
+			// We are doing a spirial loop, marking the outmost cells as red, then working in
+			
 			// Did we make a change?
 			boolean changed = false;
 			
+			// How many cells are there in total (including ones that aren't in the hexagonal)
 			int totalRows = (this.size-1)*2 + 1;
 			int totalCells = totalRows*totalRows;
 			
+			// Starting position is top left
 			int x = 0;
 			int y = 0;
+			
+			// Starting direction is to the right
 			int dir = 0;
 			
+			// How far to the right do we need to move?
 			int maxCount = 2*(this.size-1)+1;
 			int count = 0;
 			
+			// Are we on the outside of the spirial?
 			boolean first = true;
-			
-			//System.out.println("Loop");
 			
 			// Loop over every square
 			for(int j=0; j<totalCells; j++) {
-				// debug
-				//System.out.println("("+x+", "+y+")");
-				
 				// Grab a cell
 				Cell cell = this.getCell(x, y);
 				
@@ -147,14 +151,16 @@ public class Board {
 					}
 				}
 				
-				// Spirial
+				// Spirial, workout which direction to move etc
 				count++;
-				if(dir == 0) {
+				if(dir == 0) { // Moving to the right
 					if(count < maxCount) {
 						x++;
 					} else {
 						dir = 1;
 						count = 1;
+						
+						// The first time, we don't lower the maxCount
 						if(first) {
 							first = false;
 						} else {
@@ -163,7 +169,7 @@ public class Board {
 					}
 				}
 				
-				if(dir == 1) {
+				if(dir == 1) { // Moving down
 					if(count < maxCount) {
 						y++;
 					} else {
@@ -172,7 +178,7 @@ public class Board {
 					}
 				}
 				
-				if(dir == 2) {
+				if(dir == 2) { // Moving left
 					if(count < maxCount) {
 						x--;
 					} else {
@@ -182,7 +188,7 @@ public class Board {
 					}
 				}
 				
-				if(dir == 3) {
+				if(dir == 3) { // Moving up
 					if(count < maxCount) {
 						y--;
 					} else {
@@ -275,6 +281,26 @@ public class Board {
 			}
 		}
 		
+		// Debug, print what we found
+		if(Main.isDebug()) {
+			if(tripodBlack) {
+				// Tripod black found
+				System.out.println("Black tripod");
+			}
+			if(loopBlack) {
+				// Loop black found
+				System.out.println("Black loop");
+			}
+			if(tripodWhite) {
+				// Tripod white found
+				System.out.println("White tripod");
+			}
+			if(loopWhite) {
+				// Loop white found
+				System.out.println("White loop");
+			}
+		}
+		
 		// Check who won
 		if(loopBlack || tripodBlack) {
 			// Black won, white unknown
@@ -299,36 +325,6 @@ public class Board {
 				}
 				return true;
 			}
-			
-			/**
-			 * 
-			 * THIS IS FOR DEBUGGING ONLY, REMOVE THIS BEFORE YOU SUBMIT!
-			 * 
-			 */
-			
-			//When draw, how each player won
-			if(tripodBlack) {
-				// Tripod black won
-				System.out.println("Black tripod");
-			}
-			if(loopBlack) {
-				// Loop black won
-				System.out.println("Black loop");
-			}
-			if(tripodWhite) {
-				// Tripod white won
-				System.out.println("White tripod");
-			}
-			if(loopWhite) {
-				// Loop white won
-				System.out.println("White loop");
-			}
-			
-			/**
-			 * 
-			 * END DEBUGGING BLOCK
-			 * 
-			 */
 			
 			return true;
 		} else {
@@ -549,6 +545,9 @@ public class Board {
 		}
 	}
 	
+	/**
+	 * Prints all the loop graphs
+	 */
 	public void printLoops() {
 		char[] char_array = new char[3];
 		char_array[0] = PLAYER_NONE_TOKEN;
@@ -580,6 +579,9 @@ public class Board {
 		}
 	}
 	
+	/**
+	 * Prints which tripod each cell belongs to
+	 */
 	public void printTripods() {
 		char[] char_array = new char[3];
 		char_array[0] = PLAYER_NONE_TOKEN;
@@ -601,7 +603,7 @@ public class Board {
 					if(tr == null) {
 						System.out.print(" ----- ");
 					} else {
-						int num = current.getTripodGraph().tripodID;
+						int num = current.getTripodGraph().getTripodID();
 						String str = Integer.toString(num);
 						if(num < 10) {
 							str = " --"+str+"-- ";

@@ -53,15 +53,4 @@ public class Graph {
 	public ArrayList<Cell> getCells() {
 		return this.cellList;
 	}
-	
-	/**
-	 * Merges a graph into this graph
-	 * @param graph The graph to add into this graph
-	 */
-	public void mergeGraph(Graph graph) {
-		for(Cell cell : graph.getCells()) {
-			// Add this cell
-			this.addCell(cell);
-		}
-	}
 }

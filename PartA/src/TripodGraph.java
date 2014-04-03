@@ -15,8 +15,8 @@ public class TripodGraph extends Graph {
 	private static int totalTripods = 0;
 	
 	/** This tripod's ID */
-	public int tripodID;
-	
+	private int tripodID;
+
 	/**
 	 * Creates a new tripod graph
 	 * @param player The ID of the player who owns this graph
@@ -61,6 +61,11 @@ public class TripodGraph extends Graph {
 		return this.edgeCount;
 	}
 	
+	/**
+	 * Merges another graph into this graph, setting all
+	 *   cell's tripod to this graph
+	 * @param graph The graph to merge into this graph
+	 */
 	public void mergeGraph(Graph graph) {
 		// Update all cell's tripods
 		for(Cell cell : graph.getCells()) {
@@ -86,5 +91,13 @@ public class TripodGraph extends Graph {
 				side *= 2;
 			}
 		}
+	}
+	
+	/**
+	 * Gets this tripod's ID
+	 * @return this tripod's ID
+	 */
+	public int getTripodID() {
+		return tripodID;
 	}
 }
