@@ -1,7 +1,8 @@
+package aschmid_rport.fencemaster;
 
 /**
  * This class represents a cell on the board
- * @author aschmid, rport
+ * @author aschmid (584770), rport (586116)
  *
  */
 public class Cell {

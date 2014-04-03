@@ -1,9 +1,10 @@
+package aschmid_rport.fencemaster;
 import java.util.ArrayList;
 
 
 /**
  * The base class for all our graphs
- * @author aschmid, rport
+ * @author aschmid (584770), rport (586116)
  *
  */
 public class Graph {

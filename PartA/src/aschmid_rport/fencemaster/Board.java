@@ -1,6 +1,7 @@
+package aschmid_rport.fencemaster;
 /**
  * Main board class
- * @author aschmid, rport
+ * @author aschmid (584770), rport (586116)
  */
 public class Board {
 	/** These are the cells of the board */

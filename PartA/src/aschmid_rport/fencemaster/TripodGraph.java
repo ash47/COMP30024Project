@@ -1,7 +1,8 @@
+package aschmid_rport.fencemaster;
 
 /**
  * A graph that represents tripods
- * @author aschmid, rport
+ * @author aschmid (584770), rport (586116)
  *
  */
 public class TripodGraph extends Graph {

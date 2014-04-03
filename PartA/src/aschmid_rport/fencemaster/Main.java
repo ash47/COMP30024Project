@@ -1,9 +1,10 @@
+package aschmid_rport.fencemaster;
 import java.util.Scanner;
 
 
 /**
  * The main entry point for our program
- * @author aschmid, rport
+ * @author aschmid (584770), rport (586116)
  *
  */
 public class Main {
