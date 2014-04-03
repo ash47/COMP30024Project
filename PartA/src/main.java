@@ -49,6 +49,7 @@ public class Main {
 		String line = sc.nextLine();
 		int size;
 		
+		// Ensure they parsed a number
 		try {
 			size = Integer.parseInt(line);
 		} catch(NumberFormatException e) {
