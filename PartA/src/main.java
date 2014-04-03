@@ -47,14 +47,28 @@ public class Main {
 		
 		// Find the size of the board
 		String line = sc.nextLine();
-		int size = Integer.parseInt(line);
+		int size;
+		
+		try {
+			size = Integer.parseInt(line);
+		} catch(NumberFormatException e) {
+			// Close scanner
+			sc.close();
+			
+			// Print error
+			System.out.println("The first line needs to be a number, you entered: "+line);
+			
+			// Exit
+			return;
+		}
+		
 		
 		// Validate the size
 		if(size < MIN_BOARD_SIZE) {
 			// Close scanner
 			sc.close();
 			
-			// Print error here
+			// Print error
 			System.out.println("Size must be at least "+MIN_BOARD_SIZE);
 			
 			// Exit
@@ -83,7 +97,7 @@ public class Main {
 				// Close scanner
 				sc.close();
 				
-				// Print error here
+				// Print error
 				System.out.println("Invalid input, line "+(y+2)+" is the wrong length (Got "+line.length()+", expected "+rowSize+")");
 				
 				// Exit
@@ -99,7 +113,7 @@ public class Main {
 					// Close scanner
 					sc.close();
 					
-					// Print error here
+					// Print error		
 					System.out.println("Unknown player token on line "+(y+2)+" (Got "+line.charAt(i)+")");
 					
 					// Exit
