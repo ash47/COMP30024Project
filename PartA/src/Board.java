@@ -559,8 +559,13 @@ public class Board {
 			//prints the tokens for the row
 			for(int x = 0; x < 2*size - 1; x++) {
 				Cell current = getCell(x,y);
-				if(current != null && !current.isRed()) {
-					System.out.print(char_array[current.getPlayer()]);
+				if(current != null) {
+					if(current.isRed()){
+						System.out.print('-');
+					}
+					else{
+						System.out.print(char_array[current.getPlayer()]);						
+					}
 					System.out.print(' ');
 				}
 			}
