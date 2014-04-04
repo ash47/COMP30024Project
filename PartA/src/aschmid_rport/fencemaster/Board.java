@@ -64,8 +64,18 @@ public class Board {
 		while(true) {
 			// We are doing a spirial loop, marking the outmost cells as red, then working in
 			
+			// If debug is on, show the loops being generated
+			if(Main.isDebug()) {
+				// Print boards
+				System.out.println("Marking Red...");
+				printLoops();
+			}
+			
 			// Did we make a change?
 			boolean changed = false;
+			
+			// Are there even any red left?
+			boolean redLeft = false;
 			
 			// How many cells are there in total (including ones that aren't in the hexagonal)
 			int totalRows = (this.size-1)*2 + 1;
@@ -149,6 +159,9 @@ public class Board {
 						
 						// Store that we made a change
 						changed = true;
+					} else {
+						// There are red left
+						redLeft = true;
 					}
 				}
 				
@@ -200,8 +213,8 @@ public class Board {
 				}
 			}
 			
-			// Check if no change was made
-			if(!changed) {
+			// Check if no change was made, or no red left
+			if(!changed || !redLeft) {
 				break;
 			}
 		}

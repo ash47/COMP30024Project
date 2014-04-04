@@ -1,0 +1,81 @@
+##Detecting Loops##
+ - To detect loops we used an algorithm that would detect redundant (red for short) cells in a loop,
+   for example, you could have a loop where the wall of it is two cells thick,
+   the outer layer is therefore red and doesn't add anything to the loop.
+   
+   To detect if a cell is red or not, we check the adjacent (adj for short) cells in a circular pattern,
+   starting at the top right, and checking cells clockwise until we get back to the start.
+   
+   We can identify a section of cells as either block or gap, a block is where there is one or more adj cells in
+   a clockwise row with the same player ID allocated to them. A gap is one or more blocks that are red or belong
+   to another player.
+   
+   For a cell to be not red, it's circular pattern needs to be block, gap, block, gap. If this pattern doesn't
+   exist on a given cell, it can be marked as red.
+   
+   We process cells from the very top left of the board, around clockwise in a spirial pattern, using the red
+   detection will only work if it is done in this fashion, starting in the middle will give false red cells!
+   
+   We repeat the red marking process until there are no more changes, this is usually a one step process, but
+   there are specific layouts where this can take up to size (the size of the board) times.
+   
+   Once there are no more changes, we look through the board for any remaining cells that are not red,
+   if we find any cells, it means a loop has been detected, by the nature of the red algorithm, we will
+   have a loop :D
+
+###Time Complexity###
+ - Let size = the size of the board
+   Let n = number of cells, roughly (2*(size-1))^2
+   
+   Checking if a cell is red or not happens in constant time. O(1)
+   
+   Looking at each cell takes O(n) since it looks at each cell once
+   
+   We can repeat the red checking up to size times for a really specific layout (where a loop almost exists,
+   except the broken gap is in the middle of the board.)
+   
+   Best Case
+   O(n)
+   
+   Worst Case
+   O(size * n)
+   
+###Comments###
+ - We could probably improve this to be O(n) if instead of repeating until there are no changes, spiral in like
+   normal, then spiral back out, although this method is less of a sure fire thing to work.
+   
+   We were planning to use graph releated algorithms to test if we had loops after doing the red checking, but we
+   found that if any cells remain, there is ALWAYS a loop.
+
+##Detecting Tripods##
+ - We start at the top left of the board and create a new tripod for this cell. We look at all adj cells for tripods,
+   if we find a tripod, we merge this cell's current tripod into the tripod we found and continue looking at the adj
+   cells, if more then one tripod is found in adj cells, it will all be merged into one big tripod.
+   
+   When we look at a cell we check which side it is touching, each side is allocated an id, 2^sideNumber (where sideNumber
+   if a value 0 - 5), except for the case where it isn't touching a side, we check if our tripod has already touched this side,
+   if not, we mark the side as touched and add one to the total number of sides touched.
+   
+   We can then check if the total number of sides touched is three or more, if so, we mark this player as having a tripod.
+   
+   We continue to build the tripods row by row until the entire board has been built.
+   
+###Time Complexity###
+ - Let size = the size of the board
+   Let n = number of cells, roughly (2*(size-1))^2
+   
+   Looking at each cell once takes O(n) time.
+   
+   Checking for adj tripods take O(1) time.
+   
+   The worst case for a merge is if there are two distinct sections of cells which are connected via a cell at the bottom,
+   since black and white both should have the same number of cells, the largest merge possible would be n/4, and it would only
+   happen once, most of the time it would take O(1) time to merge two tripods (since most of the time, the tripod would contain
+   only one cell).
+   
+   Since big merges can only happen once, we can consider it part of our constant time that is added, and hence, we can call our
+   algorithm O(n)
+
+###Comments###
+ - There is probably a smarter way to merge the graphs so that it happens in constant time, but we were told not to worry about
+   run times, so we stuck with a method that would definitely work.

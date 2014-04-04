@@ -68,6 +68,12 @@ public class TripodGraph extends Graph {
 	 * @param graph The graph to merge into this graph
 	 */
 	public void mergeGraph(Graph graph) {
+		// Check if we are merging with ourself
+		if(this == graph) {
+			// Don't bother merging
+			return;
+		}
+		
 		// Update all cell's tripods
 		for(Cell cell : graph.getCells()) {
 			cell.setTripodGraph(this);
