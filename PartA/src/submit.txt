@@ -3,6 +3,6 @@ submit COMP30024 A "aschmid_rport/fencemaster/Board.java" "aschmid_rport/fencema
 verify -t COMP30024 A
 
 /usr/java1.6/bin/javac aschmid_rport/fencemaster/Main.java
-/usr/java1.6/bin/java aschmid_rport/fencemaster/Main
+/usr/java1.6/bin/java -Xmx20m aschmid_rport/fencemaster/Main
 
 /usr/java1.6/bin/java aschmid_rport/fencemaster/Main < "5\nBB---\nB-B---\n-B-B---\n--BB----\n------W--\n-WW--W--\n--WW---\n---W--\n--W--"
