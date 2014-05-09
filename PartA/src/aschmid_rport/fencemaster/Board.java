@@ -511,7 +511,7 @@ public class Board {
 	/**
 	 * Returns the ID of the player
 	 * @param id The character of the player, B, W or -
-	 * @return
+	 * @return The playerID
 	 */
 	public static int getPlayerID(char id) {
 		if(id == PLAYER_BLACK_TOKEN) {

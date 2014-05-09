@@ -5,6 +5,14 @@ import java.io.PrintStream;
 import aiproj.fencemaster.* ;
 
 public class aschmid implements Player, Piece {
+	
+	/** The ID of this player */
+	int playerID;
+	
+	
+	/** The board dimension */
+	public int dim;
+	
 	public int init(int n, int p) {
 		return 0;
 	}
@@ -23,6 +31,7 @@ public class aschmid implements Player, Piece {
 
 	@Override
 	public void printBoard(PrintStream output) {
+		output.print("hello world!");
 		// TODO Auto-generated method stub
 		
 	}

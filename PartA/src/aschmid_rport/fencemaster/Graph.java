@@ -25,7 +25,7 @@ public class Graph {
 	
 	/**
 	 * Adds a cell to this graph
-	 * @param cell The cell to add to this graph
+	 * @param newCell The cell to add to this graph
 	 */
 	public void addCell(Cell newCell) {
 		// Check if this cell is already in the cell
