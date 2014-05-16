@@ -42,7 +42,7 @@ public class Board {
 		this.size = size;
 		
 		// Allocate memory for the cells
-		cells = new Cell[2*size][2*size];
+		/*cells = new Cell[2*size][2*size];
 		
 		// Fill our board up
 		for(int i=0;i<2*size;i++) {
@@ -52,6 +52,16 @@ public class Board {
 					// Store it
 					cells[i][j] = new Cell(0);
 				}
+			}
+		}*/
+		
+		cells = new Cell[2*size-1][];
+		
+		for(int y=0; y<2*size-1; y++) {
+			int rowSize = getRowSize(y);
+			cells[y] = new Cell[rowSize];
+			for(int x=0; x<rowSize; x++) {
+				cells[y][x] = new Cell(0);
 			}
 		}
 	}
@@ -387,6 +397,15 @@ public class Board {
 		return true;
 	}
 	
+	public int mapX(int x, int y){
+		if(y < size) {
+			return x;
+		} else {
+			int takeAway = Math.abs((y - (size-1)));
+			return (x - takeAway);
+		}
+	}
+	
 	/**
 	 * Gets the first valid x coordinate for the given y coordinate
 	 * @param y The y coordinate to check against
@@ -428,7 +447,9 @@ public class Board {
 			return null;
 		}
 		
-		return cells[x][y];
+		x = mapX(x, y);
+		
+		return cells[y][x];
 	}
 	
 	
