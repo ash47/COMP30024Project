@@ -1,4 +1,5 @@
 package aschmid_rport.fencemaster;
+
 /**
  * Main board class
  * @author aschmid (584770), rport (586116)
@@ -559,7 +560,7 @@ public class Board {
 	/**
 	 * Prints the board nicely :)
 	 */
-	public void print(){
+	public void print() {
 		char[] char_array = new char[3];
 		char_array[0] = PLAYER_NONE_TOKEN;
 		char_array[1] = PLAYER_WHITE_TOKEN;
