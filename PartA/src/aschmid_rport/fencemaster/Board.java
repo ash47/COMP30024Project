@@ -397,6 +397,12 @@ public class Board {
 		return true;
 	}
 	
+	/**
+	 * Maps X in given format to X in stored array format
+	 * @param x given x
+	 * @param y given y
+	 * @return Returns the x in stored array format
+	 */
 	public int mapX(int x, int y){
 		if(y < size) {
 			return x;

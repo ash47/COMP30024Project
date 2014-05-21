@@ -4,7 +4,7 @@ import java.io.PrintStream;
 
 import aiproj.fencemaster.* ;
 
-public class aschmid implements Player, Piece {
+public class schmipo implements Player, Piece {
 	
 	/** The ID of this player */
 	int playerID;
