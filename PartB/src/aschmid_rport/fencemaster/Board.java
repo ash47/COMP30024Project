@@ -550,7 +550,7 @@ public class Board {
 		if(turn < 1) move = makefirstMove(playerID);
 		else if(turn < heuristic_depth) move = makeheuristicMove(playerID);
 		else move = makeminimaxMove(playerID);
-		fillCell(move.Col, move.Row, move.P);
+		fillCell(move.Row, move.Col, move.P);
 		
 		return move;
 	}
