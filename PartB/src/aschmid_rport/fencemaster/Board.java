@@ -4,6 +4,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import aiproj.fencemaster.Move;
 import aiproj.fencemaster.Piece;
 
 public class Board {
@@ -13,8 +14,17 @@ public class Board {
 	/** Stores the winner */
 	private int winner;
 	
+	/** How many turns have been played so far*/
+	private int turn;
+	
 	/** The current redundent level (used for fast updates) */
 	private int redLevel;
+	
+	/** The number of moves where the board decides positions heuristically */
+	private int heuristic_depth;
+	
+	/** The maximum depth of the minimax search */
+	private int minimax_cutoff;
 
 	/** These are the cells of the board */
 	private Cell[][] cells;
@@ -58,12 +68,42 @@ public class Board {
 			int rowSize = getRowSize(y);
 			cells[y] = new Cell[rowSize];
 			for(int x=0; x<rowSize; x++) {
-				cells[y][x] = new Cell(PLAYER_NONE);
+				cells[y][x] = new Cell(PLAYER_NONE, y, unmapX(x, y));
 			}
 		}
 		
 		// There is no winner at the start
 		this.winner = Piece.INVALID;
+		//No turns have occured yet
+		this.turn = 0;
+		this.heuristic_depth = 8;
+		this.minimax_cutoff = 5;
+	}
+	
+	/**
+	 * Copy constructor for the board class
+	 * @param original board to be copied
+	 */
+	public Board(Board original)
+	{
+		dim = original.dim;
+		redLevel = original.redLevel;
+		winner = original.getWinner();
+		turn = original.turn;
+		heuristic_depth = original.heuristic_depth;
+		minimax_cutoff = original.minimax_cutoff;
+		
+		cells = new Cell[2*dim - 1][];
+		for(int y = 0; y < 2*dim - 1; y++)
+		{
+			int rowSize = getRowSize(y);
+			cells[y] = new Cell[rowSize];
+			for(int x = 0; x < rowSize; x++)
+			{
+				cells[y][x] = new Cell(original.cells[y][x]);
+			}
+		}
+		
 	}
 	
 	/**
@@ -96,6 +136,21 @@ public class Board {
 		} else {
 			int takeAway = Math.abs((y - (this.dim-1)));
 			return (x - takeAway);
+		}
+	}
+	
+	/**
+	 * Maps X in stored array format to X in given format
+	 * @param x stored x
+	 * @param y stored y
+	 * @return Returns the x in given format
+	 */
+	public int unmapX(int x, int y){
+		if(y < this.dim) {
+			return x;
+		} else {
+			int addto = Math.abs((y - (this.dim-1)));
+			return (x + addto);
 		}
 	}
 	
@@ -158,6 +213,8 @@ public class Board {
 		if(cell != null) {
 			cell.setPlayer(player);
 		}
+		//A turn has been made
+		this.turn++;
 	}
 	
 	/**
@@ -195,6 +252,8 @@ public class Board {
 	public void swapCell(int x, int y, int player) {
 		// Just update the cell
 		setCell(x, y, player);
+		// Though a turn was made, the board hasn't changed
+		this.turn--;
 	}
 	
 	/**
@@ -470,5 +529,288 @@ public class Board {
 			// Prints new line for the next row
 			output.println();
 		}
+	}
+	
+	/**
+	 * Chooses which type of move to make for the board
+	 * @param playerID the id of the player
+	 * @return The move that is calculated
+	 */
+	public Move makeMove(int playerID)
+	{
+		Move move;
+		
+		if(turn < 1) move = makefirstMove(playerID);
+		else if(turn < heuristic_depth) move = makeheuristicMove(playerID);
+		else move = makeminimaxMove(playerID);
+		
+		return move;
+	}
+	
+	/**
+	 * Makes the move if the player is playing first
+	 * @return The first move, at position 0,0
+	 */
+	private Move makefirstMove(int playerID)
+	{
+		return new Move(playerID, false, 0, 0);
+	}
+	
+	/**
+	 * Makes best move dictated by heuristics within the depth
+	 * @return the best move
+	 */
+	private Move makeheuristicMove(int playerID)
+	{
+		
+		//2nd turn, check if we wish to swap, if not take first move
+		if(turn == 1)
+		{
+			int corner[] = check_corners();
+			if(corner != null) return new Move(playerID, true, corner[0], corner[1]);
+			else return makefirstMove(playerID);
+		}
+		//For the rest of the turns try and construct a good position using heuristics
+		else
+		{
+			Cell rels[] = getAdj(0, 0);
+			//try to place in optimal cells (touching sides)
+			for(int i = 0; i < MAX_ADJ; i++)
+			{
+				Cell cell = rels[i];
+				if(	(cell != null)&&//Cell is valid
+					(cell.getPlayer() == 0)&&//Cell is empty
+					(getSide(cell.getY(), cell.getX()) > 0))//Cell touches a side
+				{
+					return new Move(playerID, false, cell.getY(), cell.getX());
+				}
+			}
+			//place in opposite cell 2,2 if no optimal cells remain
+			Cell cell_opposite = getCell(2,2);
+			if(cell_opposite.getPlayer() == 0) return new Move(playerID, false, 2, 2);
+			
+			//place in any adjacent cell if there are not optimal cells
+			for(int i = 0; i < MAX_ADJ; i++)
+			{
+				Cell cell = rels[i];
+				if(	(cell != null)&&//Cell is valid
+					(cell.getPlayer() == 0))//Cell is empty
+				{
+					return new Move(playerID, false, cell.getY(), cell.getX());
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Makes move based on minimax algorithm
+	 * @return best move according to minimax algorithm
+	 */
+	private Move makeminimaxMove(int playerID)
+	{
+		int me = playerID;
+		int enemy = 2 - me + 1;
+		
+		//Initial depth is 0
+		int depth = 0;
+		
+		//The move that will be returned
+		Move move = new Move(me, false, 0, 0);
+		
+		//Create an array list of relevant cells to consider
+		ArrayList<Vec2> relevant_cells = new ArrayList<Vec2>();
+		get_rels(relevant_cells);
+		
+		//The best value so far
+		int best_val = Integer.MIN_VALUE;
+		int temp_val = 0;
+		
+		//Create an iterator for the relevant celsl
+		Iterator<Vec2> rels = relevant_cells.iterator();
+		
+		while(rels.hasNext())
+		{
+			Vec2 curr = rels.next();
+			Board cpy = new Board(this);
+			cpy.fillCell(curr.getX(), curr.getY(), me);
+			if((temp_val = min(cpy, enemy, depth + 1)) > best_val)
+			{
+				move.Row = curr.getY();
+				move.Col = curr.getX();
+				best_val = temp_val;
+			}
+		}
+		
+		return move;
+	}
+	
+	/**
+	 * The min portion of the minimax algorith
+	 * @param board the board to be used
+	 * @param me the playerID of the player making the turn
+	 * @param depth the current depth of the search
+	 * @return the lowest value as evaluated by the function
+	 */
+	private int min(Board board, int me, int depth)
+	{
+		//Check for winner, returns -1 if enemy wins, 1 if me wins
+		int the_winner = board.getWinner();
+		int enemy = 2 - me + 1;
+		if(the_winner != 0)
+		{
+			if(the_winner == me) return -1;
+			else if(the_winner == Piece.INVALID) return 0;
+			else return 1;
+		}
+		//If the max depth has been reached, return the evaluation of the board state
+		else if(depth >= minimax_cutoff)
+		{
+			return board.eval(enemy);
+		}
+		
+		else
+		{
+			
+			//Create an array list of relevant cells to consider
+			ArrayList<Vec2> relevant_cells = new ArrayList<Vec2>();
+			board.get_rels(relevant_cells);
+			
+			//The best value so far
+			int worst_val = Integer.MAX_VALUE;
+			int temp_val = 0;
+			
+			//Create an iterator for the relevant cells
+			Iterator<Vec2> rels = relevant_cells.iterator();
+			
+			while(rels.hasNext())
+			{
+				Vec2 curr = rels.next();
+				Board cpy = new Board(this);
+				cpy.fillCell(curr.getX(), curr.getY(), me);
+				if((temp_val = max(cpy, enemy, depth + 1)) < worst_val)
+				{
+					worst_val = temp_val;
+				}
+			}
+			return worst_val;
+		}
+	}
+	
+	/**
+	 * The max portion of the minimax algorith
+	 * @param board the board to be used
+	 * @param me the playerID of the player making the turn
+	 * @param depth the current depth of the search
+	 * @return the highest value as evaluated by the function
+	 */
+	private int max(Board board, int me, int depth)
+	{
+		//Check for winner, returns -1 if enemy wins, 1 if me wins
+		int the_winner = board.getWinner();
+		int enemy = 2 - me + 1;
+		if(the_winner != 0)
+		{
+			if(the_winner == me) return 1;
+			else if(the_winner == Piece.INVALID) return 0;
+			else return -1;
+		}
+		//If the max depth has been reached, return the evaluation of the board state
+		else if(depth >= minimax_cutoff)
+		{
+			return board.eval(me);
+		}
+		
+		else
+		{
+			
+			//Create an array list of relevant cells to consider
+			ArrayList<Vec2> relevant_cells = new ArrayList<Vec2>();
+			board.get_rels(relevant_cells);
+			
+			//The best value so far
+			int best_val = Integer.MIN_VALUE;
+			int temp_val = 0;
+			
+			//Create an iterator for the relevant cells
+			Iterator<Vec2> rels = relevant_cells.iterator();
+			
+			while(rels.hasNext())
+			{
+				Vec2 curr = rels.next();
+				Board cpy = new Board(this);
+				cpy.fillCell(curr.getX(), curr.getY(), me);
+				if((temp_val = min(cpy, enemy, depth + 1)) > best_val)
+				{
+					best_val = temp_val;
+				}
+			}
+			return best_val;
+		}
+	}
+	
+	/**
+	 * Gets the relevant cells in the board to be considered for minimax
+	 * Relevant cells are simply all the adjacent cells of all taken cells
+	 * @param relevant_cells
+	 */
+	private void get_rels(ArrayList<Vec2> relevant_cells) 
+	{
+		boolean added[][] = new boolean[2*dim - 1][2*dim - 1];
+		/**
+		 * Loop over all cells to find taken cells
+		 * then loop over adjacent cells of taken cells and add them if they haven't been added already
+		 */
+		for(int y = 0; y < 2*dim-1; y++) 
+		{
+			int rowSize = getRowSize(y);
+			cells[y] = new Cell[rowSize];
+			for(int x = 0; x < rowSize; x++) 
+			{
+				if(cells[y][x].getPlayer() != 0)
+				{
+					Cell adj[] = getAdj(x, y);
+					for(int i = 0; i < MAX_ADJ; i++)
+					{
+						if(	(adj[i].getPlayer() == 0)&&
+							(added[adj[i].getY()][adj[i].getX()] != true))
+						{
+							relevant_cells.add(new Vec2(x, y));
+							added[y][x] = true;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * The evaluation function for the current board state
+	 * @param me the playerID of the player who called the minimax algorithm
+	 * @return the evaluation value
+	 */
+	private int eval(int me)
+	{
+		int result = 0;
+		
+		return result;
+	}
+	
+	/**
+	 * Checks each corner of the board to see if there is a player there
+	 * @return The first corner found with a player, if none have a player null is returned
+	 */
+	private int[] check_corners()
+	{
+		
+		if(getCell(0, 0).getPlayer() > 0) return new int[] {0, 0};//Top left
+		else if(getCell(dim - 1, 0).getPlayer() > 0) return new int[] {dim - 1, 0};//Top right
+		else if(getCell(2*dim - 1, dim - 1).getPlayer() > 0) return new int[] {2*dim - 1, 0};//Middle right
+		else if(getCell(dim - 1, 2*dim - 1).getPlayer() > 0) return new int[] {dim - 1, 2*dim - 1};//Bottom right
+		else if(getCell(0, 2*dim - 1).getPlayer() > 0) return new int[] {0, 2*dim - 1};//Bottom left
+		else if(getCell(0, dim - 1).getPlayer() > 0) return new int[] {0, dim - 1};//Middle left
+		
+		return null;
 	}
 }

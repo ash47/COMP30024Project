@@ -34,7 +34,8 @@ public class Schmipo implements Player, Piece {
 	}
 	
 	public Move makeMove() {
-		return new Move(1, false, 1, 1);
+		Move move = board.makeMove(playerID);
+		return move;
 	}
 	
 	public int opponentMove(Move m) {
