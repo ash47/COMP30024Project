@@ -23,6 +23,8 @@ public class Schmipo implements Player, Piece {
 		// Store dimension
 		this.dim = n;
 		
+		// Store player
+		this.playerID = p;
 		// User can swap
 		this.canSwap = true;
 		

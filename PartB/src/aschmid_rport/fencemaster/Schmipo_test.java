@@ -1,7 +1,6 @@
 package aschmid_rport.fencemaster;
 
 import java.io.PrintStream;
-import java.util.Scanner;
 
 import aiproj.fencemaster.Move;
 import aiproj.fencemaster.Piece;
@@ -25,6 +24,9 @@ public class Schmipo_test implements Player, Piece {
 	public int init(int n, int p) {
 		// Store dimension
 		this.dim = n;
+
+		// Store player
+		this.playerID = p;
 		
 		// User can swap
 		this.canSwap = true;
@@ -37,20 +39,27 @@ public class Schmipo_test implements Player, Piece {
 	}
 	
 	public Move makeMove() {
-		Scanner sc = new Scanner(System.in);
-		boolean willSwap = false; 
-		if(canSwap == true){
-			System.out.print("Wanna swap? y/n: ");
-			String answer = String.valueOf(sc.next());
-			if(answer == "y") willSwap = true;
+		boolean willSwap = false;
+		boolean OK_move = false;
+		int col = 0;
+		int row = 0;
+		while(OK_move == false){
+			System.out.print("Enter row: ");
+			row = StdIn.readInt();
+			System.out.print("Enter column: ");
+			col = StdIn.readInt();
+			if(canSwap == true){
+				System.out.print("Wanna swap? y/n: ");
+				char answer = StdIn.readChar();
+				if(answer == 'y') willSwap = true;
+				if(board.cellTaken(row, col) == true)OK_move = true;
+			}
+			else if(board.cellTaken(row, col) == false)OK_move = true;
+			if(OK_move == false)System.out.println("Invalid move, try again.");
 		}
-		System.out.print("Enter row: ");
-		int row = sc.nextInt();
-		System.out.print("Enter column: ");
-		int col = sc.nextInt();
-		sc.close();
 		
 		Move move = new Move(playerID, willSwap, row, col);
+		board.fillCell(row, col, playerID);
 		return move;
 	}
 	

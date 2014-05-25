@@ -11,6 +11,9 @@ public class Board {
 	/** The size of the board */
 	private int dim;
 	
+	/** The number of cells the board contains in total */
+	private int total_cells;
+	
 	/** Stores the winner */
 	private int winner;
 	
@@ -77,7 +80,8 @@ public class Board {
 		//No turns have occured yet
 		this.turn = 0;
 		this.heuristic_depth = 8;
-		this.minimax_cutoff = 5;
+		this.minimax_cutoff = 3;
+		this.total_cells  = 3*(dim*dim - dim) + 1;
 	}
 	
 	/**
@@ -228,6 +232,7 @@ public class Board {
 		// Get the cell that needs changing
 		Cell cell = getCell(x, y);
 		cell.setPlayer(player);
+		turn++;
 		
 		if(pattern == -1) {
 			// This cell is a block cell
@@ -242,6 +247,8 @@ public class Board {
 				fullRedScan();
 			}
 		}
+		//If all the cells are filled and there is no winner, the match is a draw
+		if((turn >= total_cells)&&(winner < Piece.EMPTY)) winner = Piece.EMPTY;
 	}
 	
 	/**
@@ -543,6 +550,7 @@ public class Board {
 		if(turn < 1) move = makefirstMove(playerID);
 		else if(turn < heuristic_depth) move = makeheuristicMove(playerID);
 		else move = makeminimaxMove(playerID);
+		fillCell(move.Col, move.Row, move.P);
 		
 		return move;
 	}
@@ -641,6 +649,7 @@ public class Board {
 				move.Col = curr.getX();
 				best_val = temp_val;
 			}
+			System.out.println("Relevant cell ["+curr.getY()+", "+curr.getX()+"] has value "+temp_val);
 		}
 		
 		return move;
@@ -765,24 +774,30 @@ public class Board {
 		for(int y = 0; y < 2*dim-1; y++) 
 		{
 			int rowSize = getRowSize(y);
-			cells[y] = new Cell[rowSize];
 			for(int x = 0; x < rowSize; x++) 
 			{
 				if(cells[y][x].getPlayer() != 0)
 				{
-					Cell adj[] = getAdj(x, y);
+					Cell cell = cells[y][x];
+					int X = cell.getX();
+					int Y = cell.getY();
+					Cell adj[] = getAdj(X, Y);
 					for(int i = 0; i < MAX_ADJ; i++)
 					{
-						if(	(adj[i].getPlayer() == 0)&&
-							(added[adj[i].getY()][adj[i].getX()] != true))
+						if(adj[i] != null)
 						{
-							relevant_cells.add(new Vec2(x, y));
-							added[y][x] = true;
+							if(	(adj[i].getPlayer() == 0)&&
+								(added[adj[i].getY()][adj[i].getX()] != true))
+								{
+									relevant_cells.add(new Vec2(adj[i].getX(), adj[i].getY()));
+									added[adj[i].getY()][adj[i].getX()] = true;
+								}
 						}
 					}
 				}
 			}
 		}
+		
 	}
 
 	/**
