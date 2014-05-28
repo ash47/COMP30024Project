@@ -41,6 +41,9 @@ public class Board {
 	/** The next chain ID */
 	private int chainIDs;
 	
+	/** Last Move made on the board */
+	private int[] lastMove;
+	
 	/** The max number of adacencies possible */
 	public static final int MAX_ADJ = 6;
 	
@@ -94,6 +97,7 @@ public class Board {
 		this.chains = new ArrayList<Chain>();
 		this.chainIDs = 0;
 		this.filled = 0;
+		this.lastMove = new int[2];
 	}
 	
 	/**
@@ -110,6 +114,7 @@ public class Board {
 		minimax_cutoff = original.minimax_cutoff;
 		chainIDs = original.chainIDs;
 		filled = original.filled;
+		lastMove = original.lastMove;
 		
 		cells = new Cell[2*dim - 1][];
 		for(int y = 0; y < 2*dim - 1; y++)
@@ -262,6 +267,9 @@ public class Board {
 		// Get the cell that needs changing
 		Cell cell = getCell(x, y);
 		setCell(x, y, player);
+		
+		lastMove[0] = x;
+		lastMove[1] = y;
 		
 		//Add one to the turn
 		turn++;
@@ -861,7 +869,6 @@ public class Board {
 				move.Col = curr.getX();
 				bound = temp_val;
 			}
-			//System.out.println("Relevant cell ["+curr.getY()+", "+curr.getX()+"] has value "+temp_val);
 		}
 		
 		return move;
@@ -881,9 +888,9 @@ public class Board {
 		int enemy = 2 - me + 1;
 		if(the_winner != 0)
 		{
-			if(the_winner == me) return -1;
+			if(the_winner == me) return -1*(minimax_cutoff - depth + 1);
 			else if(the_winner == Piece.INVALID) return 0;
-			else return 1;
+			else return (minimax_cutoff - depth + 1);
 		}
 		//If the max depth has been reached, return the evaluation of the board state
 		else if(depth >= minimax_cutoff)
@@ -940,9 +947,9 @@ public class Board {
 		int enemy = 2 - me + 1;
 		if(the_winner != 0)
 		{
-			if(the_winner == me) return 1;
+			if(the_winner == me) return (minimax_cutoff - depth + 1);
 			else if(the_winner == Piece.INVALID) return 0;
-			else return -1;
+			else return -1*(minimax_cutoff - depth + 1);
 		}
 		//If the max depth has been reached, return the evaluation of the board state
 		else if(depth >= minimax_cutoff)
@@ -1015,7 +1022,7 @@ public class Board {
 							if(	(adj[i].getPlayer() == 0)&&
 								(added[adj[i].getY()][adj[i].getX()] != true))
 							{
-								if(cell.getPlayer() == playerID)
+								if((cell.getPlayer() == playerID)||((cell.getX() == lastMove[0])&&(cell.getY() == lastMove[1])))
 								{
 									relevant_cells.add(0, new Vec2(adj[i].getX(), adj[i].getY()));
 									added[adj[i].getY()][adj[i].getX()] = true;
@@ -1040,8 +1047,9 @@ public class Board {
 	 * @param relevant_cells
 	 * @param playerID
 	 */
-	private void get_player_rels(ArrayList<Vec2> relevant_cells, int playerID) 
+	private int get_player_rels(ArrayList<Vec2> relevant_cells, int playerID) 
 	{
+		int score = 0;
 		boolean added[][] = new boolean[2*dim - 1][2*dim - 1];
 		/**
 		 * Loop over all cells to find taken cells
@@ -1058,6 +1066,8 @@ public class Board {
 					int X = cell.getX();
 					int Y = cell.getY();
 					Cell adj[] = getAdj(X, Y);
+					int temp_length = getChain(cell.getChainID()).getLength();
+					if(temp_length > score)score = temp_length;
 					for(int i = 0; i < MAX_ADJ; i++)
 					{
 						if(adj[i] != null)
@@ -1073,7 +1083,7 @@ public class Board {
 				}
 			}
 		}
-		
+		return score;
 	}
 
 	/**
@@ -1110,7 +1120,7 @@ public class Board {
 		}
 		
 		ArrayList<Vec2> my_relevant_cells = new ArrayList<Vec2>();
-		get_player_rels(my_relevant_cells, me);
+		score += get_player_rels(my_relevant_cells, me);
 		
 		Iterator<Vec2> my_rels = my_relevant_cells.iterator();
 		
@@ -1120,12 +1130,12 @@ public class Board {
 			Vec2 curr = my_rels.next();
 			int x = curr.getX();
 			int y = curr.getY();
-			if(isCritical(x, y, me) == true)score += 5;
+			if(isCritical(x, y, me) == true)score += 3;
 		}
 		
 		//score += Criticals(me);
 		
-		double result = Math.tanh(score/10);
+		double result = Math.tanh(score/(2*turn));
 		
 		return result;
 	}
