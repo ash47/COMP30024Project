@@ -11,6 +11,9 @@ public class Schmipo_test implements Player, Piece {
 	/** The ID of this player */
 	int playerID;
 	
+	/** The turn we are up to */
+	int turn;
+	
 	
 	/** The board dimension */
 	public int dim;
@@ -29,16 +32,21 @@ public class Schmipo_test implements Player, Piece {
 		this.playerID = p;
 		
 		// User can swap
-		this.canSwap = true;
+		this.canSwap = false;
 		
 		// Create a new board
 		this.board = new Board(this.dim);
+		
+		// Set turn to 0
+		this.turn = 0;
 
 		// Init was successful
 		return 0;
 	}
 	
 	public Move makeMove() {
+		if(turn == 1)canSwap = true;
+		else canSwap = false;
 		boolean willSwap = false;
 		boolean OK_move = false;
 		int col = 0;
@@ -59,11 +67,14 @@ public class Schmipo_test implements Player, Piece {
 		}
 		
 		Move move = new Move(playerID, willSwap, row, col);
-		board.fillCell(row, col, playerID);
+		board.fillCell(col, row, playerID);
+		turn++;
 		return move;
 	}
 	
 	public int opponentMove(Move m) {
+		if(turn == 1)canSwap = true;
+		else canSwap = false;
 		// Grab useful info
 		int x = m.Col;
 		int y = m.Row;
@@ -83,6 +94,7 @@ public class Schmipo_test implements Player, Piece {
 				// A swap can no longer happen
 				this.canSwap = false;
 				
+				turn++;
 				// Return success
 				return 0;
 			}

@@ -550,7 +550,7 @@ public class Board {
 		if(turn < 1) move = makefirstMove(playerID);
 		else if(turn < heuristic_depth) move = makeheuristicMove(playerID);
 		else move = makeminimaxMove(playerID);
-		fillCell(move.Row, move.Col, move.P);
+		fillCell(move.Col, move.Row, move.P);
 		
 		return move;
 	}
@@ -568,6 +568,29 @@ public class Board {
 	 * Makes best move dictated by heuristics within the depth
 	 * @return the best move
 	 */
+	
+	/**
+	 * Makes the move to the best corner considering the enemy's position
+	 * @param playerID the player id of the player making the move
+	 * @return the best move for turn 2
+	 */
+	private Move makesecondMove(int playerID)
+	{
+		int enemy = 2 - playerID + 1;
+		Move move;
+		move = new Move(playerID, false, 0, 0);
+		
+		Vec2 enemy_start = get_enemy_start(enemy);
+		
+		if(enemy_start.getY() < (dim - 1)) move.Col = 2*dim - 1;
+		else move.Col = 0;
+		
+		if(enemy_start.getX() < getRowSize(enemy_start.getY())) move.Row = dim - 1;
+		else move.Row = 0;
+		
+		return move;
+	}
+	
 	private Move makeheuristicMove(int playerID)
 	{
 		
@@ -575,13 +598,14 @@ public class Board {
 		if(turn == 1)
 		{
 			int corner[] = check_corners();
-			if(corner != null) return new Move(playerID, true, corner[0], corner[1]);
-			else return makefirstMove(playerID);
+			if(corner != null) return new Move(playerID, true, corner[1], corner[0]);
+			else return makesecondMove(playerID);
 		}
 		//For the rest of the turns try and construct a good position using heuristics
 		else
 		{
-			Cell rels[] = getAdj(0, 0);
+			int start[] = get_start(playerID);
+			Cell rels[] = getAdj(start[0], start[1]);
 			//try to place in optimal cells (touching sides)
 			for(int i = 0; i < MAX_ADJ; i++)
 			{
@@ -593,9 +617,11 @@ public class Board {
 					return new Move(playerID, false, cell.getY(), cell.getX());
 				}
 			}
-			//place in opposite cell 2,2 if no optimal cells remain
-			Cell cell_opposite = getCell(2,2);
-			if(cell_opposite.getPlayer() == 0) return new Move(playerID, false, 2, 2);
+			//place in opposite cell if no optimal cells remain
+			int oppositeX = Math.abs(start[0] + 2*(((dim - 1) - start[0])/(dim - 1)));
+			int oppositeY = Math.abs(start[1] + 2*(((dim - 1) - start[1])/(dim - 1)));
+			Cell cell_opposite = getCell(oppositeX,oppositeY);
+			if(cell_opposite.getPlayer() == 0) return new Move(playerID, false, oppositeY, oppositeX);
 			
 			//place in any adjacent cell if there are not optimal cells
 			for(int i = 0; i < MAX_ADJ; i++)
@@ -607,6 +633,27 @@ public class Board {
 					return new Move(playerID, false, cell.getY(), cell.getX());
 				}
 			}
+			//place in any adjacent cell of adjacent cell if there are not optimal cells or adjacent cells
+			for(int i = 0; i < MAX_ADJ; i++)
+			{
+				Cell cell = rels[i];
+				if(	(cell != null)&&//Cell is valid
+					(cell.getPlayer() == playerID))//Cell is mine
+				{
+					Cell rels2[] = getAdj(cell.getX(), cell.getY());
+					for(int j = 0; j < MAX_ADJ; j++)
+					{
+						Cell cell2 = rels2[j];
+						if(	(cell2 != null)&&//Cell is valid
+							(cell2.getPlayer() == 0))//Cell is empty
+						{
+							return new Move(playerID, false, cell2.getY(), cell2.getX());
+						}
+					}
+					
+				}
+			}
+			
 		}
 		
 		return null;
@@ -819,13 +866,55 @@ public class Board {
 	private int[] check_corners()
 	{
 		
-		if(getCell(0, 0).getPlayer() > 0) return new int[] {0, 0};//Top left
-		else if(getCell(dim - 1, 0).getPlayer() > 0) return new int[] {dim - 1, 0};//Top right
-		else if(getCell(2*dim - 1, dim - 1).getPlayer() > 0) return new int[] {2*dim - 1, 0};//Middle right
-		else if(getCell(dim - 1, 2*dim - 1).getPlayer() > 0) return new int[] {dim - 1, 2*dim - 1};//Bottom right
-		else if(getCell(0, 2*dim - 1).getPlayer() > 0) return new int[] {0, 2*dim - 1};//Bottom left
-		else if(getCell(0, dim - 1).getPlayer() > 0) return new int[] {0, dim - 1};//Middle left
+		if(cellTaken(0, 0) == true) return new int[] {0, 0};//Top left
+		else if(cellTaken(dim - 1, 0) == true) return new int[] {dim - 1, 0};//Top right
+		else if(cellTaken(2*dim - 1, dim - 1) == true) return new int[] {2*dim - 1, 0};//Middle right
+		else if(cellTaken(dim - 1, 2*dim - 1) == true) return new int[] {dim - 1, 2*dim - 1};//Bottom right
+		else if(cellTaken(0, 2*dim - 1) == true) return new int[] {0, 2*dim - 1};//Bottom left
+		else if(cellTaken(0, dim - 1) == true) return new int[] {0, dim - 1};//Middle left
 		
+		return null;
+	}
+	
+	/**
+	 * Checks each corner of the board to find the start position of the player
+	 * @param playerID
+	 * @return The first corner found with a the player, if none have a player null is returned
+	 */
+	private int[] get_start(int playerID)
+	{
+		
+		if(getCell(0, 0).getPlayer() == playerID) return new int[] {0, 0};//Top left
+		else if(getCell(dim - 1, 0).getPlayer() == playerID) return new int[] {dim - 1, 0};//Top right
+		else if(getCell(2*dim - 1, dim - 1).getPlayer() == playerID) return new int[] {2*dim - 1, 0};//Middle right
+		else if(getCell(dim - 1, 2*dim - 1).getPlayer() == playerID) return new int[] {dim - 1, 2*dim - 1};//Bottom right
+		else if(getCell(0, 2*dim - 1).getPlayer() == playerID) return new int[] {0, 2*dim - 1};//Bottom left
+		else if(getCell(0, dim - 1).getPlayer() == playerID) return new int[] {0, dim - 1};//Middle left
+		
+		return null;
+	}
+	
+	/**
+	 * Checks the board to find the start position of the enemy player 
+	 * @param enemyID
+	 * @return the start position
+	 */
+	private Vec2 get_enemy_start(int enemyID)
+	{
+		Vec2 start;
+		
+		for(int y = 0; y < 2*dim - 1; y++)
+		{
+			int RowSize = getRowSize(y);
+			for(int x = 0; x < RowSize; x++)
+			{
+				if(cells[y][x].getPlayer() == enemyID)
+				{
+					start = new Vec2(x, y);
+					return start;
+				}
+			}
+		}
 		return null;
 	}
 }
