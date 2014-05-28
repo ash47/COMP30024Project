@@ -636,6 +636,7 @@ public class Board {
 			// Prints new line for the next row
 			output.println();
 		}
+		output.println();
 	}
 	
 	/**
