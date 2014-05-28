@@ -108,7 +108,7 @@ public class Schmipo_test implements Player, Piece {
 		
 		// Fill this cell in
 		board.fillCell(x, y, m.P);
-		
+		turn++;
 		// Return Success
 		return 0;
 	}

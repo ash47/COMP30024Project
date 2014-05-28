@@ -700,8 +700,8 @@ public class Board {
 		get_rels(relevant_cells);
 		
 		//The best value so far
-		int best_val = Integer.MIN_VALUE;
-		int temp_val = 0;
+		double best_val = Integer.MIN_VALUE;
+		double temp_val = 0;
 		
 		//Create an iterator for the relevant celsl
 		Iterator<Vec2> rels = relevant_cells.iterator();
@@ -730,7 +730,7 @@ public class Board {
 	 * @param depth the current depth of the search
 	 * @return the lowest value as evaluated by the function
 	 */
-	private int min(Board board, int me, int depth)
+	private double min(Board board, int me, int depth)
 	{
 		//Check for winner, returns -1 if enemy wins, 1 if me wins
 		int the_winner = board.getWinner();
@@ -744,7 +744,10 @@ public class Board {
 		//If the max depth has been reached, return the evaluation of the board state
 		else if(depth >= minimax_cutoff)
 		{
-			return board.eval(enemy);
+			double result = board.eval(enemy);
+			//System.out.println("Result of this configuration is: "+result);
+			//board.print(System.out);
+			return result;
 		}
 		
 		else
@@ -755,8 +758,8 @@ public class Board {
 			board.get_rels(relevant_cells);
 			
 			//The best value so far
-			int worst_val = Integer.MAX_VALUE;
-			int temp_val = 0;
+			double worst_val = Integer.MAX_VALUE;
+			double temp_val = 0;
 			
 			//Create an iterator for the relevant cells
 			Iterator<Vec2> rels = relevant_cells.iterator();
@@ -764,9 +767,11 @@ public class Board {
 			while(rels.hasNext())
 			{
 				Vec2 curr = rels.next();
-				Board cpy = new Board(this);
+				Board cpy = new Board(board);
 				cpy.fillCell(curr.getX(), curr.getY(), me);
-				if((temp_val = max(cpy, enemy, depth + 1)) < worst_val)
+				temp_val = max(cpy, enemy, depth + 1);
+				//System.out.println("Relevant cell ["+curr.getY()+", "+curr.getX()+"] has value "+temp_val);
+				if(temp_val < worst_val)
 				{
 					worst_val = temp_val;
 				}
@@ -782,7 +787,7 @@ public class Board {
 	 * @param depth the current depth of the search
 	 * @return the highest value as evaluated by the function
 	 */
-	private int max(Board board, int me, int depth)
+	private double max(Board board, int me, int depth)
 	{
 		//Check for winner, returns -1 if enemy wins, 1 if me wins
 		int the_winner = board.getWinner();
@@ -796,7 +801,10 @@ public class Board {
 		//If the max depth has been reached, return the evaluation of the board state
 		else if(depth >= minimax_cutoff)
 		{
-			return board.eval(me);
+			double result = board.eval(me);
+			//System.out.println("Result of this configuration is: "+result);
+			//board.print(System.out);
+			return result;
 		}
 		
 		else
@@ -807,8 +815,8 @@ public class Board {
 			board.get_rels(relevant_cells);
 			
 			//The best value so far
-			int best_val = Integer.MIN_VALUE;
-			int temp_val = 0;
+			double best_val = Integer.MIN_VALUE;
+			double temp_val = 0;
 			
 			//Create an iterator for the relevant cells
 			Iterator<Vec2> rels = relevant_cells.iterator();
@@ -816,9 +824,11 @@ public class Board {
 			while(rels.hasNext())
 			{
 				Vec2 curr = rels.next();
-				Board cpy = new Board(this);
+				Board cpy = new Board(board);
 				cpy.fillCell(curr.getX(), curr.getY(), me);
-				if((temp_val = min(cpy, enemy, depth + 1)) > best_val)
+				temp_val = min(cpy, enemy, depth + 1);
+				//System.out.println("Relevant cell ["+curr.getY()+", "+curr.getX()+"] has value "+temp_val);
+				if(temp_val > best_val)
 				{
 					best_val = temp_val;
 				}
@@ -873,9 +883,34 @@ public class Board {
 	 * @param me the playerID of the player who called the minimax algorithm
 	 * @return the evaluation value
 	 */
-	private int eval(int me)
+	private double eval(int me)
 	{
-		int result = 0;
+		double score = 0;
+		int enemy = 2 - me + 1;
+		//Arbitrary eval function for testing
+		for(int y = 0; y < 2*dim - 1; y++)
+		{
+			int RowSize = getRowSize(y);
+			for(int x = 0; x < RowSize; x++)
+			{
+				Cell cell = getCell(x, y);
+				if(cell != null)
+				{
+					if(		(getSide(cell.getX(), cell.getY()) > 0)&&
+							(cell.getPlayer() == me))
+					{	
+						score++;
+					}
+					else if(	(getSide(cell.getX(), cell.getY()) > 0)&&
+								(cell.getPlayer() == enemy))
+					{
+						score--;
+					}
+				}
+			}
+		}
+		
+		double result = Math.tanh(score/10);
 		
 		return result;
 	}
