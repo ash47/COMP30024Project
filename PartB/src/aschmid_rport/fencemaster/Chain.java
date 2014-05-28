@@ -6,6 +6,9 @@ public class Chain {
 	/** The ID of the chain */
 	int id;
 	
+	/** The length of the chain */
+	int length;
+	
 	/** The ID of the player who has this chain */
 	int playerID;
 	
@@ -27,6 +30,7 @@ public class Chain {
 		playerID = a_playerID;
 		side_count = 0;
 		sides = 0;
+		length = 0;
 		cells = new ArrayList<Cell>();
 	}
 	
@@ -41,6 +45,7 @@ public class Chain {
 		cells = new ArrayList<Cell>();
 		id = original.getID();
 		playerID = original.getPlayerID();
+		length = 0;
 	}
 	
 	/**
@@ -68,6 +73,15 @@ public class Chain {
 	public int getPlayerID()
 	{
 		return playerID;
+	}
+	
+	/**
+	 * Gets the length
+	 * @return length
+	 */
+	public int getLength()
+	{
+		return length;
 	}
 	
 	/**
@@ -118,6 +132,7 @@ public class Chain {
 	{
 		cells.add(cell);
 		cell.setChainID(id);
+		length++;
 	}
 	
 }

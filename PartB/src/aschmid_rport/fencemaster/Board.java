@@ -20,6 +20,9 @@ public class Board {
 	/** How many turns have been played so far*/
 	private int turn;
 	
+	/** The number of places filled*/
+	private int filled;
+	
 	/** The current redundent level (used for fast updates) */
 	private int redLevel;
 	
@@ -90,6 +93,7 @@ public class Board {
 		this.total_cells  = 3*(dim*dim - dim) + 1;
 		this.chains = new ArrayList<Chain>();
 		this.chainIDs = 0;
+		this.filled = 0;
 	}
 	
 	/**
@@ -105,6 +109,7 @@ public class Board {
 		heuristic_depth = original.heuristic_depth;
 		minimax_cutoff = original.minimax_cutoff;
 		chainIDs = original.chainIDs;
+		filled = original.filled;
 		
 		cells = new Cell[2*dim - 1][];
 		for(int y = 0; y < 2*dim - 1; y++)
@@ -243,8 +248,7 @@ public class Board {
 		if(cell != null) {
 			cell.setPlayer(player);
 		}
-		//A turn has been made
-		this.turn++;
+		filled++;
 	}
 	
 	/**
@@ -257,7 +261,7 @@ public class Board {
 		
 		// Get the cell that needs changing
 		Cell cell = getCell(x, y);
-		cell.setPlayer(player);
+		setCell(x, y, player);
 		
 		//Add one to the turn
 		turn++;
@@ -328,7 +332,7 @@ public class Board {
 			}
 		}
 		//If all the cells are filled and there is no winner, the match is a draw
-		if((turn >= total_cells)&&(winner < Piece.EMPTY)) winner = Piece.EMPTY;
+		if((filled >= total_cells)&&(winner < Piece.EMPTY)) winner = Piece.EMPTY;
 	}
 	
 	/**
@@ -340,7 +344,8 @@ public class Board {
 		// Just update the cell
 		setCell(x, y, player);
 		// Though a turn was made, the board hasn't changed
-		this.turn--;
+		filled--;
+		turn++;
 	}
 	
 	/**
@@ -710,6 +715,10 @@ public class Board {
 		//For the rest of the turns try and construct a good position using heuristics
 		else
 		{
+			System.out.println("Turn is "+turn+", filled is "+filled);
+			// If a swap took place
+			if(filled < 2)return makesecondMove(playerID);
+			
 			int start[] = get_start(playerID);
 			Cell rels[] = getAdj(start[0], start[1]);
 			//try to place in optimal cells (touching sides)
@@ -826,7 +835,7 @@ public class Board {
 		
 		//Create an array list of relevant cells to consider
 		ArrayList<Vec2> relevant_cells = new ArrayList<Vec2>();
-		get_rels(relevant_cells);
+		get_rels(relevant_cells, me);
 		
 		//The best value so far
 		double bound = Integer.MIN_VALUE;
@@ -884,7 +893,7 @@ public class Board {
 			
 			//Create an array list of relevant cells to consider
 			ArrayList<Vec2> relevant_cells = new ArrayList<Vec2>();
-			board.get_rels(relevant_cells);
+			board.get_rels(relevant_cells, me);
 			
 			//The worst value so far
 			double worst_val = Integer.MAX_VALUE;
@@ -943,7 +952,7 @@ public class Board {
 			
 			//Create an array list of relevant cells to consider
 			ArrayList<Vec2> relevant_cells = new ArrayList<Vec2>();
-			board.get_rels(relevant_cells);
+			board.get_rels(relevant_cells, me);
 			
 			//The best value so far
 			double best_val = Integer.MIN_VALUE;
@@ -975,7 +984,7 @@ public class Board {
 	 * Relevant cells are simply all the adjacent cells of all taken cells
 	 * @param relevant_cells
 	 */
-	private void get_rels(ArrayList<Vec2> relevant_cells) 
+	private void get_rels(ArrayList<Vec2> relevant_cells, int playerID) 
 	{
 		boolean added[][] = new boolean[2*dim - 1][2*dim - 1];
 		/**
@@ -1000,8 +1009,16 @@ public class Board {
 							if(	(adj[i].getPlayer() == 0)&&
 								(added[adj[i].getY()][adj[i].getX()] != true))
 							{
-								relevant_cells.add(new Vec2(adj[i].getX(), adj[i].getY()));
-								added[adj[i].getY()][adj[i].getX()] = true;
+								if(cell.getPlayer() == playerID)
+								{
+									relevant_cells.add(0, new Vec2(adj[i].getX(), adj[i].getY()));
+									added[adj[i].getY()][adj[i].getX()] = true;
+								}
+								else
+								{
+									relevant_cells.add(new Vec2(adj[i].getX(), adj[i].getY()));
+									added[adj[i].getY()][adj[i].getX()] = true;
+								}
 							}
 						}
 					}
@@ -1100,6 +1117,8 @@ public class Board {
 			if(isCritical(x, y, me) == true)score += 5;
 		}
 		
+		//score += Criticals(me);
+		
 		double result = Math.tanh(score/10);
 		
 		return result;
@@ -1167,16 +1186,17 @@ public class Board {
 	private boolean isCritical(int x, int y, int playerID)
 	{
 		Cell[] adj = getAdj(x, y);
-		Cell cell = getCell(x, y);
-		
+		int ID = -1;
 		// Workout if this cell is critical
 		for(int i=0; i<MAX_ADJ; i++) {
 			Cell adjCell = adj[i];
 			if(adjCell != null)
 			{
-				if(adjCell.getPlayer() == cell.getPlayer())
+				if(adjCell.getPlayer() == playerID)
 				{
-					if(adjCell.getChainID() != cell.getChainID())
+					int tempID = adjCell.getChainID();
+					if((ID < 0)&&(getChain(tempID).getLength() > 2))ID = tempID;
+					else if((ID > -1)&&(getChain(tempID).getLength() > 2)&&(tempID != ID))
 					{
 						return true;
 					}
@@ -1184,6 +1204,56 @@ public class Board {
 			}
 		}
 		return false;
+	}
+	
+	private int Criticals(int playerID)
+	{
+		boolean added[][] = new boolean[2*dim - 1][2*dim - 1];
+		int score = 0;
+		
+		ArrayList<Vec2> chain_cells = new ArrayList<Vec2>();
+		for(int y = 0; y < 2*dim - 1; y++)
+		{
+			int RowSize = getRowSize(y);
+			for(int x = 0; x < RowSize; x++)
+			{
+				Cell cell = cells[y][x];
+				if((cell.getPlayer() == playerID)&&(getChain(cell.getChainID()).getLength() > 2))
+				{
+					chain_cells.add(new Vec2(cell.getX(), cell.getY()));
+				}
+			}
+		}
+		Iterator<Vec2> the_cells = chain_cells.iterator();
+		/**
+		 * Loop over all cells to find taken cells
+		 * then loop over adjacent cells of taken cells and add them if they haven't been added already
+		 */
+		while(the_cells.hasNext())
+		{
+			Vec2 curr = the_cells.next(); 
+			int X = curr.getX();
+			int Y = curr.getY();
+			Cell adj[] = getAdj(X, Y);
+			for(int i = 0; i < MAX_ADJ; i++)
+			{
+				if(adj[i] != null)
+				{
+					if(	(adj[i].getPlayer() == 0)&&
+						(added[adj[i].getY()][adj[i].getX()] != true))
+					{
+						added[adj[i].getY()][adj[i].getX()] = true;
+					}
+					else if((adj[i].getPlayer() == 0)&&
+							(added[adj[i].getY()][adj[i].getX()] == true) )
+					{
+						score++;
+					}
+				}
+			}
+		}
+		//System.out.println("Iterated over "+count+" cells when checking for Criticals");
+		return score;
 	}
 	
 	/**
@@ -1204,6 +1274,11 @@ public class Board {
 		return null;
 	}
 	
+	/**
+	 * Merges 2 chains together
+	 * @param destID destination chain ID
+	 * @param srcID source chain ID
+	 */
 	private void merge_chains(int destID, int srcID)
 	{
 		//System.out.println("Merging "+srcID+" into "+destID);
