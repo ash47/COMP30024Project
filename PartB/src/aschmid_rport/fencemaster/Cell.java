@@ -10,6 +10,9 @@ public class Cell {
 	/** The x co-ordinate of the cell*/
 	private int x;
 	
+	/** The chain ID of the cell */
+	private int chainID;
+	
 	/** Is this cell redundant */
 	private int red;
 	
@@ -18,6 +21,7 @@ public class Cell {
 		this.red = 0;
 		this.y = y;
 		this.x = x;
+		this.chainID = -1;
 	}
 	
 	/**
@@ -30,6 +34,7 @@ public class Cell {
 		red = original.getRed();
 		y = original.getY();
 		x = original.getX();
+		chainID = original.getChainID();
 	}
 	
 	/**
@@ -75,5 +80,19 @@ public class Cell {
 	 */
 	public void setRed(int red) {
 		this.red = red;
+	}
+	
+	/**
+	 * @param ID The ChainID to set this cell to
+	 */
+	public void setChainID(int ID) {
+		this.chainID = ID;
+	}
+	
+	/**
+	 * @return chainID
+	 */
+	public int getChainID() {
+		return chainID;
 	}
 }

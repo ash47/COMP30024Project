@@ -31,6 +31,12 @@ public class Board {
 
 	/** These are the cells of the board */
 	private Cell[][] cells;
+
+	/** The chains of the board */
+	private ArrayList<Chain> chains;
+	
+	/** The next chain ID */
+	private int chainIDs;
 	
 	/** The max number of adacencies possible */
 	public static final int MAX_ADJ = 6;
@@ -82,6 +88,8 @@ public class Board {
 		this.heuristic_depth = 8;
 		this.minimax_cutoff = 5;
 		this.total_cells  = 3*(dim*dim - dim) + 1;
+		this.chains = new ArrayList<Chain>();
+		this.chainIDs = 0;
 	}
 	
 	/**
@@ -96,6 +104,7 @@ public class Board {
 		turn = original.turn;
 		heuristic_depth = original.heuristic_depth;
 		minimax_cutoff = original.minimax_cutoff;
+		chainIDs = original.chainIDs;
 		
 		cells = new Cell[2*dim - 1][];
 		for(int y = 0; y < 2*dim - 1; y++)
@@ -105,6 +114,23 @@ public class Board {
 			for(int x = 0; x < rowSize; x++)
 			{
 				cells[y][x] = new Cell(original.cells[y][x]);
+			}
+		}
+		
+		chains = new ArrayList<Chain>();
+		Iterator<Chain> the_chains = original.chains.iterator();
+		while(the_chains.hasNext())
+		{
+			Chain old_chain = the_chains.next();
+			Chain new_chain = new Chain(old_chain);
+			chains.add(new_chain);
+			Iterator<Cell> the_cells = old_chain.getCells().iterator();
+			while(the_cells.hasNext())
+			{
+				Cell curr = the_cells.next();
+				int x = curr.getX();
+				int y = curr.getY();
+				new_chain.add_cell(getCell(x, y));
 			}
 		}
 		
@@ -232,7 +258,61 @@ public class Board {
 		// Get the cell that needs changing
 		Cell cell = getCell(x, y);
 		cell.setPlayer(player);
+		
+		//Add one to the turn
 		turn++;
+				
+		// Configure chains
+		Cell[] adj = getAdj(x, y);
+		boolean added = false;
+		for(int i = 0; i < MAX_ADJ; i++)
+		{
+			Cell adj_cell = adj[i];
+			if(adj_cell != null)
+			{
+				if(adj_cell.getPlayer() == player)
+				{
+					if(added == false)
+					{
+						int ID = adj_cell.getChainID();
+						//cell.setChainID(ID);
+						Chain chain = getChain(ID);
+						chain.add_cell(cell);
+						int side;
+						if((side = getSide(x, y)) > 0)
+						{
+							chain.setSide(side);
+						}
+						added = true;
+						if(chain.getSide_Count() >= 3)winner = player;
+					}
+					else
+					{
+						
+						int set_ID = cell.getChainID();
+						int merge_ID = adj_cell.getChainID();
+						if(set_ID != merge_ID)
+						{
+							merge_chains(set_ID, merge_ID);
+						}
+					}
+				}
+			}
+		}
+		if(added == false)
+		{
+			Chain chain = new Chain(chainIDs, player);
+			chain.add_cell(cell);
+			chains.add(chain);
+			chainIDs++;
+			int side;
+			if((side = getSide(x, y)) > 0)
+			{
+				chain.setSide(side);
+			}
+		}
+		
+		
 		
 		if(pattern == -1) {
 			// This cell is a block cell
@@ -539,6 +619,32 @@ public class Board {
 	}
 	
 	/**
+	 * @param output The output stream to print to
+	 */
+	public void print_chains(PrintStream output) {
+		
+		// Iterates over whole board printing out each token
+		for(int y = 0; y < 2*this.dim - 1; y++) {
+			// Adds space buffer for nice hexagon effect
+			for(int i = 0; i < Math.abs((this.dim - 1) - y); i++) {
+				output.print(' ');
+			}
+			
+			// Prints the tokens for the row
+			for(int x = 0; x < 2*this.dim - 1; x++) {
+				Cell current = getCell(x,y);
+				if(current != null) {
+					if(current.getChainID() == -1)output.print("- ");
+					else output.print(current.getChainID()+" ");
+				}
+			}
+			
+			// Prints new line for the next row
+			output.println();
+		}
+	}
+	
+	/**
 	 * Chooses which type of move to make for the board
 	 * @param playerID the id of the player
 	 * @return The move that is calculated
@@ -717,7 +823,7 @@ public class Board {
 				move.Col = curr.getX();
 				bound = temp_val;
 			}
-			System.out.println("Relevant cell ["+curr.getY()+", "+curr.getX()+"] has value "+temp_val);
+			//System.out.println("Relevant cell ["+curr.getY()+", "+curr.getX()+"] has value "+temp_val);
 		}
 		
 		return move;
@@ -1038,29 +1144,8 @@ public class Board {
 	private boolean isCritical(int x, int y, int playerID)
 	{
 		Cell[] adj = getAdj(x, y);
-		/*int start = - 1;
-		boolean chain = false;
-		boolean broken = false;
-		int end = MAX_ADJ - 1;
 		
-		for(int count = 0; count < MAX_ADJ; count++)
-		{
-			if(adj[count] != null)
-			{
-				if((start < 0)&&(adj[count].getPlayer() == playerID))
-				{
-					start = count;
-					chain = true;
-					continue;
-				}
-				else if((start >= 0)&&(adj[count].getPlayer() == playerID)) continue;
-				else if((start >= 0)&&(adj[count].getPlayer() != playerID))
-				{
-					
-				}	
-			}
-		}
-		*/
+		//Checking for non red cells
 		int mode = 0;
 		// Workout if this cell is red
 		for(int i=0; i<MAX_ADJ; i++) {
@@ -1107,5 +1192,82 @@ public class Board {
 		}
 		if(mode == 4)return true;
 		return false;
+	}
+	
+	/**
+	 * Gets the chain with the ID
+	 * @param ID
+	 * @return the chain, if no chain is found this return null
+	 */
+	private Chain getChain(int ID)
+	{
+		Iterator<Chain> my_chains = chains.iterator();
+		
+		while(my_chains.hasNext())
+		{
+			Chain chain = my_chains.next();
+			if(chain.getID() == ID)return chain;
+		}
+		
+		return null;
+	}
+	
+	private void merge_chains(int destID, int srcID)
+	{
+		//System.out.println("Merging "+srcID+" into "+destID);
+		Chain dest = getChain(destID);
+		Chain src = getChain(srcID);
+		
+		if(src == null)
+		{
+			System.out.println("Merging "+srcID+" into "+destID);
+			System.out.println("src is null with ID "+srcID);
+			print_chains(System.out);
+			print_chain_IDs(System.out);
+			return;
+		}
+		if(dest == null)
+		{
+			System.out.println("Merging "+srcID+" into "+destID);
+			System.out.println("dest is null with ID"+destID);
+			print_chains(System.out);
+			print_chain_IDs(System.out);
+			return;
+		}
+		
+		// Add cells from src to dest
+		ArrayList<Cell> src_cells = src.getCells();
+		//System.out.println("Starting Cell iteration in merge");
+		Iterator<Cell> merge_cells = src_cells.iterator();
+		while(merge_cells.hasNext())
+		{
+			Cell cell = merge_cells.next();
+			dest.add_cell(cell);
+		}
+		
+		// Add sides from src to dest
+		for(int i = 0; i < MAX_ADJ; i++)
+		{
+			int side = (int)Math.pow(2, i);
+			if(src.hasSide(side))dest.setSide(side);
+		}
+		
+		//Remove the src chain
+		chains.remove(src);
+		if(dest.getSide_Count() >= 3)
+		{
+			winner = dest.getPlayerID();
+		}
+	}
+	
+	private void print_chain_IDs(PrintStream output)
+	{
+		Iterator<Chain> my_chains = chains.iterator();
+		
+		while(my_chains.hasNext())
+		{
+			Chain chain = my_chains.next();
+			output.println(chain.getID());
+		}
 	}
 }
