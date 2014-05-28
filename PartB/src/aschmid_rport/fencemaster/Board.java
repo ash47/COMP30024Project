@@ -582,11 +582,11 @@ public class Board {
 		
 		Vec2 enemy_start = get_enemy_start(enemy);
 		
-		if(enemy_start.getY() < (dim - 1)) move.Col = 2*dim - 1;
-		else move.Col = 0;
-		
-		if(enemy_start.getX() < getRowSize(enemy_start.getY())) move.Row = dim - 1;
+		if(enemy_start.getY() < (dim - 1)) move.Row = 2*dim - 2;
 		else move.Row = 0;
+		
+		if(enemy_start.getX() < (getRowSize(enemy_start.getY())/2)) move.Col = 2*dim - 2;
+		else move.Col = dim - 1;
 		
 		return move;
 	}
@@ -623,6 +623,28 @@ public class Board {
 			Cell cell_opposite = getCell(oppositeX,oppositeY);
 			if(cell_opposite.getPlayer() == 0) return new Move(playerID, false, oppositeY, oppositeX);
 			
+			
+			//place in optimal cell of adjacent cell if there are not optimal cells or adjacent cells
+			for(int i = 0; i < MAX_ADJ; i++)
+			{
+				Cell cell = rels[i];
+				if(	(cell != null)&&//Cell is valid
+					(cell.getPlayer() == playerID))//Cell is mine
+				{
+					Cell rels2[] = getAdj(cell.getX(), cell.getY());
+					for(int j = 0; j < MAX_ADJ; j++)
+					{
+						Cell cell2 = rels2[j];
+						if(	(cell2 != null)&&//Cell is valid
+							(cell2.getPlayer() == 0)&&//Cell is empty
+							(getSide(cell2.getY(), cell2.getX()) > 0))//Cell is optimal
+						{
+							return new Move(playerID, false, cell2.getY(), cell2.getX());
+						}
+					}
+					
+				}
+			}
 			//place in any adjacent cell if there are not optimal cells
 			for(int i = 0; i < MAX_ADJ; i++)
 			{
@@ -633,7 +655,7 @@ public class Board {
 					return new Move(playerID, false, cell.getY(), cell.getX());
 				}
 			}
-			//place in any adjacent cell of adjacent cell if there are not optimal cells or adjacent cells
+			//place in adjacent cell of adjacent cell if there are not optimal cells or adjacent cells
 			for(int i = 0; i < MAX_ADJ; i++)
 			{
 				Cell cell = rels[i];
@@ -653,7 +675,6 @@ public class Board {
 					
 				}
 			}
-			
 		}
 		
 		return null;
@@ -868,9 +889,9 @@ public class Board {
 		
 		if(cellTaken(0, 0) == true) return new int[] {0, 0};//Top left
 		else if(cellTaken(dim - 1, 0) == true) return new int[] {dim - 1, 0};//Top right
-		else if(cellTaken(2*dim - 1, dim - 1) == true) return new int[] {2*dim - 1, 0};//Middle right
-		else if(cellTaken(dim - 1, 2*dim - 1) == true) return new int[] {dim - 1, 2*dim - 1};//Bottom right
-		else if(cellTaken(0, 2*dim - 1) == true) return new int[] {0, 2*dim - 1};//Bottom left
+		else if(cellTaken(2*dim - 2, dim - 1) == true) return new int[] {2*dim - 2, dim - 1};//Middle right
+		else if(cellTaken(2*dim - 2, 2*dim - 2) == true) return new int[] {2*dim - 2, 2*dim - 2};//Bottom right
+		else if(cellTaken(dim - 1, 2*dim - 2) == true) return new int[] {dim - 1, 2*dim - 2};//Bottom left
 		else if(cellTaken(0, dim - 1) == true) return new int[] {0, dim - 1};//Middle left
 		
 		return null;
@@ -886,9 +907,9 @@ public class Board {
 		
 		if(getCell(0, 0).getPlayer() == playerID) return new int[] {0, 0};//Top left
 		else if(getCell(dim - 1, 0).getPlayer() == playerID) return new int[] {dim - 1, 0};//Top right
-		else if(getCell(2*dim - 1, dim - 1).getPlayer() == playerID) return new int[] {2*dim - 1, 0};//Middle right
-		else if(getCell(dim - 1, 2*dim - 1).getPlayer() == playerID) return new int[] {dim - 1, 2*dim - 1};//Bottom right
-		else if(getCell(0, 2*dim - 1).getPlayer() == playerID) return new int[] {0, 2*dim - 1};//Bottom left
+		else if(getCell(2*dim - 2, dim - 1).getPlayer() == playerID) return new int[] {2*dim - 2, 0};//Middle right
+		else if(getCell(2*dim - 2, 2*dim - 2).getPlayer() == playerID) return new int[] {2*dim - 2, 2*dim - 2};//Bottom right
+		else if(getCell(dim - 1, 2*dim - 2).getPlayer() == playerID) return new int[] {dim - 1, 2*dim - 2};//Bottom left
 		else if(getCell(0, dim - 1).getPlayer() == playerID) return new int[] {0, dim - 1};//Middle left
 		
 		return null;
