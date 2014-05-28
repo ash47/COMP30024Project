@@ -56,13 +56,7 @@ public class Schmipo_test implements Player, Piece {
 			row = StdIn.readInt();
 			System.out.print("Enter column: ");
 			col = StdIn.readInt();
-			if(canSwap == true){
-				System.out.print("Wanna swap? y/n: ");
-				char answer = StdIn.readChar();
-				if(answer == 'y') willSwap = true;
-				if(board.cellTaken(col, row) == true)OK_move = true;
-			}
-			else if(board.cellTaken(col, row) == false)OK_move = true;
+			if(board.cellTaken(col, row) == false)OK_move = true;
 			if(OK_move == false)System.out.println("Invalid move, try again.");
 		}
 		

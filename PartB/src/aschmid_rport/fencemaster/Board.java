@@ -257,7 +257,7 @@ public class Board {
 	 * @param player The ID of the player to put into this cell
 	 */
 	public void fillCell(int x, int y, int player) {
-		int pattern = getRedPattern(x, y, player);
+		int pattern = getRedPattern(x, y, player, false);
 		
 		// Get the cell that needs changing
 		Cell cell = getCell(x, y);
@@ -359,21 +359,23 @@ public class Board {
 		ArrayList<Vec2> toCheck = new ArrayList<Vec2>();
 		
 		// Loop over all rows
-		for(int y=0; y<this.dim*2-1; y++) {
+		for(int y = 0; y < 2*dim - 1; y++) {
 			// Get the size of this row
 			int rowSize = this.getRowSize(y);
 			
 			// Loop over each cell in this
 			for(int x=0; x<rowSize; x++) {
 				// Get the current cell
-				Cell cell = getCell(x, y);
+				Cell cell = cells[y][x];
+				int X = cell.getX();
+				int Y = cell.getY();
 				
 				// Grab the player
 				int player = cell.getPlayer();
 				
 				if(player != PLAYER_NONE) {
 					// Get the pattern
-					int pattern = getRedPattern(x, y, cell.getPlayer());
+					int pattern = getRedPattern(X, Y, cell.getPlayer(), true);
 					
 					// Check if it is red or not
 					if(pattern == -1 || pattern == 4) {
@@ -381,7 +383,7 @@ public class Board {
 						cell.setRed(0);
 						
 						// We need to rescan this cell
-						toCheck.add(new Vec2(x, y));
+						toCheck.add(new Vec2(X, Y));
 					} else {
 						// Red
 						cell.setRed(this.redLevel);
@@ -414,7 +416,7 @@ public class Board {
 				int player = cell.getPlayer();
 				
 				// Grab the pattern
-				int pattern = getRedPattern(x, y, player);
+				int pattern = getRedPattern(x, y, player, true);
 				
 				// Check if it's red or not
 				if(pattern >= 0 && pattern < 4) {
@@ -453,7 +455,7 @@ public class Board {
 	 * @param player The ID of the player to check against
 	 * @return The pattern around that cell
 	 */
-	public int getRedPattern(int x, int y, int player) {
+	public int getRedPattern(int x, int y, int player, boolean scanning) {
 		// Grab all adj cells
 		Cell[] adj = getAdj(x, y);
 		
@@ -466,8 +468,13 @@ public class Board {
 			
 			// Check if this cell is a block, or a gap
 			boolean block = false;
-			if(adjCell != null && adjCell.getPlayer() == player && adjCell.getRed() != this.redLevel) {
-				block = true;
+			if((adjCell != null)&&(adjCell.getPlayer() == player)) {
+				if(scanning)
+				{
+					if((adjCell.getRed() != this.redLevel)) block = true;
+					else block = false;
+				}
+				else block = true;
 			}
 			
 			if(mode == 0) { // Search for block
@@ -506,7 +513,7 @@ public class Board {
 			Cell adjCell = adj[0];
 			
 			// Check if this cell is a block, or a gap
-			if(adjCell == null || adjCell.getPlayer() != player || adjCell.getRed() == this.redLevel) {
+			if((adjCell == null)||(adjCell.getPlayer() != player)||(adjCell.getRed() == this.redLevel)) {
 				mode = 4;
 			}
 		}
@@ -715,7 +722,6 @@ public class Board {
 		//For the rest of the turns try and construct a good position using heuristics
 		else
 		{
-			System.out.println("Turn is "+turn+", filled is "+filled);
 			// If a swap took place
 			if(filled < 2)return makesecondMove(playerID);
 			
