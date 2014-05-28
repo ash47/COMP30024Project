@@ -85,7 +85,7 @@ public class Board {
 		this.winner = Piece.INVALID;
 		//No turns have occured yet
 		this.turn = 0;
-		this.heuristic_depth = 8;
+		this.heuristic_depth = 10;
 		this.minimax_cutoff = 5;
 		this.total_cells  = 3*(dim*dim - dim) + 1;
 		this.chains = new ArrayList<Chain>();
@@ -729,6 +729,29 @@ public class Board {
 			Cell cell_opposite = getCell(oppositeX,oppositeY);
 			if(cell_opposite.getPlayer() == 0) return new Move(playerID, false, oppositeY, oppositeX);
 			
+			//place in adjacent cell to opposite cell if opposite cell is possessed
+			else if (cell_opposite.getPlayer() == playerID)
+			{
+				int oppositeX_adjX = Math.abs(oppositeX + (((dim - 1) - start[0])/(dim - 1)));
+				int oppositeX_adjY = Math.abs(oppositeY + ((start[0] - (dim - 1))/(dim - 1))*((Math.abs(start[1] - (dim - 1)) - (dim - 1))/(dim - 1)));
+				int oppositeY_adjX = Math.abs(oppositeX + ((start[1] - (dim - 1))/(dim - 1))*((Math.abs(start[0] - (dim - 1)) - (dim - 1))/(dim - 1)));
+				int oppositeY_adjY = Math.abs(oppositeY + (((dim - 1) - start[1])/(dim - 1)));
+				if(start[0] == (dim - 1))
+				{
+					if(start[1] == 0)oppositeX_adjX--;
+					else oppositeX_adjX++;
+				}
+				if(start[1] == (dim - 1))
+				{
+					if(start[0] == 0)oppositeY_adjY--;
+					else oppositeY_adjY++;
+				}
+				Cell cell_opposite_adjX = getCell(oppositeX_adjX,oppositeX_adjY);
+				Cell cell_opposite_adjY = getCell(oppositeY_adjX,oppositeY_adjY);
+				if(cell_opposite_adjY.getPlayer() == 0)return new Move(playerID, false, oppositeY_adjY, oppositeY_adjX);
+				else if(cell_opposite_adjX.getPlayer() == 0)return new Move(playerID, false, oppositeX_adjY, oppositeX_adjX);
+			}
+			
 			
 			//place in optimal cell of adjacent cell if there are not optimal cells or adjacent cells
 			for(int i = 0; i < MAX_ADJ; i++)
@@ -783,7 +806,7 @@ public class Board {
 			}
 		}
 		
-		return null;
+		return makeminimaxMove(playerID);
 	}
 	
 	/**
@@ -1074,7 +1097,7 @@ public class Board {
 			Vec2 curr = my_rels.next();
 			int x = curr.getX();
 			int y = curr.getY();
-			if(isCritical(x, y, me) == true)score += 1;
+			if(isCritical(x, y, me) == true)score += 5;
 		}
 		
 		double result = Math.tanh(score/10);
@@ -1109,7 +1132,7 @@ public class Board {
 		
 		if(getCell(0, 0).getPlayer() == playerID) return new int[] {0, 0};//Top left
 		else if(getCell(dim - 1, 0).getPlayer() == playerID) return new int[] {dim - 1, 0};//Top right
-		else if(getCell(2*dim - 2, dim - 1).getPlayer() == playerID) return new int[] {2*dim - 2, 0};//Middle right
+		else if(getCell(2*dim - 2, dim - 1).getPlayer() == playerID) return new int[] {2*dim - 2, dim - 1};//Middle right
 		else if(getCell(2*dim - 2, 2*dim - 2).getPlayer() == playerID) return new int[] {2*dim - 2, 2*dim - 2};//Bottom right
 		else if(getCell(dim - 1, 2*dim - 2).getPlayer() == playerID) return new int[] {dim - 1, 2*dim - 2};//Bottom left
 		else if(getCell(0, dim - 1).getPlayer() == playerID) return new int[] {0, dim - 1};//Middle left
@@ -1144,53 +1167,22 @@ public class Board {
 	private boolean isCritical(int x, int y, int playerID)
 	{
 		Cell[] adj = getAdj(x, y);
+		Cell cell = getCell(x, y);
 		
-		//Checking for non red cells
-		int mode = 0;
-		// Workout if this cell is red
+		// Workout if this cell is critical
 		for(int i=0; i<MAX_ADJ; i++) {
 			Cell adjCell = adj[i];
-			
-			// Check if this cell is a block, or a gap
-			boolean block = false;
-			if(adjCell != null && (adjCell.getPlayer() == playerID)) {
-				block = true;
-			}
-			
-			if(mode == 0) { // Search for block
-				// Block
-				if(block) {
-					mode = 1;
-				}
-			} else if(mode == 1) { // Searching for gap
-				// Gap
-				if(!block) {
-					mode = 2;
-				}
-			} else if(mode == 2) { // Searching for block
-				// Block
-				if(block) {
-					mode = 3;
-				}
-			} else if(mode == 3) { // Searching for gap
-				// Gap
-				if(!block) {
-					mode = 4;
+			if(adjCell != null)
+			{
+				if(adjCell.getPlayer() == cell.getPlayer())
+				{
+					if(adjCell.getChainID() != cell.getChainID())
+					{
+						return true;
+					}
 				}
 			}
 		}
-		
-		// We need to consider the round nature of this search
-		if(mode == 3) {
-			// check initial block for gap
-			Cell adjCell = adj[0];
-			
-			// Check if this cell is a block, or a gap
-			if((adjCell == null)||(adjCell.getPlayer() != playerID)) {
-				mode = 4;
-			}
-		}
-		if(mode == 4)return true;
 		return false;
 	}
 	
