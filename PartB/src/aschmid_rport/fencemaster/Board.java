@@ -80,7 +80,7 @@ public class Board {
 		//No turns have occured yet
 		this.turn = 0;
 		this.heuristic_depth = 8;
-		this.minimax_cutoff = 3;
+		this.minimax_cutoff = 5;
 		this.total_cells  = 3*(dim*dim - dim) + 1;
 	}
 	
@@ -700,7 +700,7 @@ public class Board {
 		get_rels(relevant_cells);
 		
 		//The best value so far
-		double best_val = Integer.MIN_VALUE;
+		double bound = Integer.MIN_VALUE;
 		double temp_val = 0;
 		
 		//Create an iterator for the relevant celsl
@@ -711,11 +711,11 @@ public class Board {
 			Vec2 curr = rels.next();
 			Board cpy = new Board(this);
 			cpy.fillCell(curr.getX(), curr.getY(), me);
-			if((temp_val = min(cpy, enemy, depth + 1)) > best_val)
+			if((temp_val = min(cpy, enemy, depth + 1, bound)) > bound)
 			{
 				move.Row = curr.getY();
 				move.Col = curr.getX();
-				best_val = temp_val;
+				bound = temp_val;
 			}
 			System.out.println("Relevant cell ["+curr.getY()+", "+curr.getX()+"] has value "+temp_val);
 		}
@@ -730,7 +730,7 @@ public class Board {
 	 * @param depth the current depth of the search
 	 * @return the lowest value as evaluated by the function
 	 */
-	private double min(Board board, int me, int depth)
+	private double min(Board board, int me, int depth, double bound)
 	{
 		//Check for winner, returns -1 if enemy wins, 1 if me wins
 		int the_winner = board.getWinner();
@@ -757,8 +757,9 @@ public class Board {
 			ArrayList<Vec2> relevant_cells = new ArrayList<Vec2>();
 			board.get_rels(relevant_cells);
 			
-			//The best value so far
+			//The worst value so far
 			double worst_val = Integer.MAX_VALUE;
+			//if(bound > Integer.MIN_VALUE) worst_val = bound;
 			double temp_val = 0;
 			
 			//Create an iterator for the relevant cells
@@ -769,8 +770,9 @@ public class Board {
 				Vec2 curr = rels.next();
 				Board cpy = new Board(board);
 				cpy.fillCell(curr.getX(), curr.getY(), me);
-				temp_val = max(cpy, enemy, depth + 1);
+				temp_val = max(cpy, enemy, depth + 1, worst_val);
 				//System.out.println("Relevant cell ["+curr.getY()+", "+curr.getX()+"] has value "+temp_val);
+				if(temp_val <= bound) return temp_val;
 				if(temp_val < worst_val)
 				{
 					worst_val = temp_val;
@@ -787,7 +789,7 @@ public class Board {
 	 * @param depth the current depth of the search
 	 * @return the highest value as evaluated by the function
 	 */
-	private double max(Board board, int me, int depth)
+	private double max(Board board, int me, int depth, double bound)
 	{
 		//Check for winner, returns -1 if enemy wins, 1 if me wins
 		int the_winner = board.getWinner();
@@ -816,6 +818,7 @@ public class Board {
 			
 			//The best value so far
 			double best_val = Integer.MIN_VALUE;
+			//if(bound < Integer.MAX_VALUE) best_val = bound;
 			double temp_val = 0;
 			
 			//Create an iterator for the relevant cells
@@ -826,8 +829,9 @@ public class Board {
 				Vec2 curr = rels.next();
 				Board cpy = new Board(board);
 				cpy.fillCell(curr.getX(), curr.getY(), me);
-				temp_val = min(cpy, enemy, depth + 1);
+				temp_val = min(cpy, enemy, depth + 1, best_val);
 				//System.out.println("Relevant cell ["+curr.getY()+", "+curr.getX()+"] has value "+temp_val);
+				if(temp_val >= bound) return temp_val;
 				if(temp_val > best_val)
 				{
 					best_val = temp_val;
@@ -866,10 +870,52 @@ public class Board {
 						{
 							if(	(adj[i].getPlayer() == 0)&&
 								(added[adj[i].getY()][adj[i].getX()] != true))
-								{
-									relevant_cells.add(new Vec2(adj[i].getX(), adj[i].getY()));
-									added[adj[i].getY()][adj[i].getX()] = true;
-								}
+							{
+								relevant_cells.add(new Vec2(adj[i].getX(), adj[i].getY()));
+								added[adj[i].getY()][adj[i].getX()] = true;
+							}
+						}
+					}
+				}
+			}
+		}
+		
+	}
+	
+	/**
+	 * Gets the relevant cells in the board to be considered for minimax
+	 * Relevant cells are simply all the adjacent cells of all taken cells
+	 * @param relevant_cells
+	 * @param playerID
+	 */
+	private void get_player_rels(ArrayList<Vec2> relevant_cells, int playerID) 
+	{
+		boolean added[][] = new boolean[2*dim - 1][2*dim - 1];
+		/**
+		 * Loop over all cells to find taken cells
+		 * then loop over adjacent cells of taken cells and add them if they haven't been added already
+		 */
+		for(int y = 0; y < 2*dim-1; y++) 
+		{
+			int rowSize = getRowSize(y);
+			for(int x = 0; x < rowSize; x++) 
+			{
+				if(cells[y][x].getPlayer() == playerID)
+				{
+					Cell cell = cells[y][x];
+					int X = cell.getX();
+					int Y = cell.getY();
+					Cell adj[] = getAdj(X, Y);
+					for(int i = 0; i < MAX_ADJ; i++)
+					{
+						if(adj[i] != null)
+						{
+							if(	(adj[i].getPlayer() == 0)&&
+								(added[adj[i].getY()][adj[i].getX()] != true))
+							{
+								relevant_cells.add(new Vec2(adj[i].getX(), adj[i].getY()));
+								added[adj[i].getY()][adj[i].getX()] = true;
+							}
 						}
 					}
 				}
@@ -888,6 +934,7 @@ public class Board {
 		double score = 0;
 		int enemy = 2 - me + 1;
 		//Arbitrary eval function for testing
+		
 		for(int y = 0; y < 2*dim - 1; y++)
 		{
 			int RowSize = getRowSize(y);
@@ -908,6 +955,20 @@ public class Board {
 					}
 				}
 			}
+		}
+		
+		ArrayList<Vec2> my_relevant_cells = new ArrayList<Vec2>();
+		get_player_rels(my_relevant_cells, me);
+		
+		Iterator<Vec2> my_rels = my_relevant_cells.iterator();
+		
+		while(my_rels.hasNext())
+		{
+			
+			Vec2 curr = my_rels.next();
+			int x = curr.getX();
+			int y = curr.getY();
+			if(isCritical(x, y, me) == true)score += 1;
 		}
 		
 		double result = Math.tanh(score/10);
@@ -972,5 +1033,79 @@ public class Board {
 			}
 		}
 		return null;
+	}
+	
+	private boolean isCritical(int x, int y, int playerID)
+	{
+		Cell[] adj = getAdj(x, y);
+		/*int start = - 1;
+		boolean chain = false;
+		boolean broken = false;
+		int end = MAX_ADJ - 1;
+		
+		for(int count = 0; count < MAX_ADJ; count++)
+		{
+			if(adj[count] != null)
+			{
+				if((start < 0)&&(adj[count].getPlayer() == playerID))
+				{
+					start = count;
+					chain = true;
+					continue;
+				}
+				else if((start >= 0)&&(adj[count].getPlayer() == playerID)) continue;
+				else if((start >= 0)&&(adj[count].getPlayer() != playerID))
+				{
+					
+				}	
+			}
+		}
+		*/
+		int mode = 0;
+		// Workout if this cell is red
+		for(int i=0; i<MAX_ADJ; i++) {
+			Cell adjCell = adj[i];
+			
+			// Check if this cell is a block, or a gap
+			boolean block = false;
+			if(adjCell != null && (adjCell.getPlayer() == playerID)) {
+				block = true;
+			}
+			
+			if(mode == 0) { // Search for block
+				// Block
+				if(block) {
+					mode = 1;
+				}
+			} else if(mode == 1) { // Searching for gap
+				// Gap
+				if(!block) {
+					mode = 2;
+				}
+			} else if(mode == 2) { // Searching for block
+				// Block
+				if(block) {
+					mode = 3;
+				}
+			} else if(mode == 3) { // Searching for gap
+				// Gap
+				if(!block) {
+					mode = 4;
+				}
+			}
+		}
+		
+		// We need to consider the round nature of this search
+		if(mode == 3) {
+			// check initial block for gap
+			Cell adjCell = adj[0];
+			
+			// Check if this cell is a block, or a gap
+			if((adjCell == null)||(adjCell.getPlayer() != playerID)) {
+				mode = 4;
+			}
+		}
+		if(mode == 4)return true;
+		return false;
 	}
 }
