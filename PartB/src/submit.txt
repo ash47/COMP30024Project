@@ -1,6 +1,8 @@
-REWRITE THIS: submit COMP30024 A "aschmid_rport/fencemaster/Board.java" "aschmid_rport/fencemaster/Cell.java" "aschmid_rport/fencemaster/Graph.java" "aschmid_rport/fencemaster/Main.java" "aschmid_rport/fencemaster/TripodGraph.java" "manifest.mf" "comments.txt"
+# Submitting
+submit COMP30024 B "aiproj/fencemaster/Move.java" "aiproj/fencemaster/Piece.java" "aiproj/fencemaster/Player.java" "aiproj/fencemaster/Referee.java" "aschmid_rport/fencemaster/Board.java" "aschmid_rport/fencemaster/Cell.java" "aschmid_rport/fencemaster/Chain.java" "aschmid_rport/fencemaster/Schmipo.java" "aschmid_rport/fencemaster/Schmipo_test.java" "aschmid_rport/fencemaster/Vec2.java" "manifest.mf" "makefile" "comments.txt"
 
-REWRITE THIS: verify -t COMP30024 A
+# Verifying
+verify -t COMP30024 B > log.txt
 
 # Compiling
 /usr/java1.6/bin/javac aiproj/fencemaster/Referee.java aschmid_rport/fencemaster/Schmipo.java

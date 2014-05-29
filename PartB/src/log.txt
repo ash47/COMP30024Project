@@ -1,0 +1,111 @@
+============================================
+vis/compile
+15:48:09_Thursday_29_May_2014
+============================================
+compiling the java project
+/usr/java1.6/bin/javac -classpath ../data/aima-core.jar -d ./ Board.java Cell.java Chain.java Move.java Piece.java Player.java Referee.java Schmipo.java Schmipo_test.java Vec2.java -g
+==== Project compiled successfully. ======
+============================================
+src/Move.java
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 375 bytes
+
+============================================
+src/Piece.java
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 338 bytes
+
+============================================
+src/Player.java
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 951 bytes
+
+============================================
+src/Referee.java
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 3302 bytes
+
+============================================
+src/Board.java
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 41107 bytes
+
+============================================
+src/Cell.java
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 1843 bytes
+
+============================================
+src/Chain.java
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 2736 bytes
+
+============================================
+src/Schmipo.java
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 1796 bytes
+
+============================================
+src/Schmipo_test.java
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 3997 bytes
+
+============================================
+src/Vec2.java
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 695 bytes
+
+============================================
+src/manifest.mf
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 45 bytes
+
+============================================
+src/makefile
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 622 bytes
+
+============================================
+src/comments.txt
+15:48:03_Thursday_29_May_2014
+============================================
+
+This file not shown by user request
+File length 4644 bytes
+

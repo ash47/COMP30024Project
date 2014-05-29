@@ -1,2 +1,54 @@
 aschmid (584770), rport (586116)
 
+
+### Code Structure ###
+ - We didn't use any non-standard libraries, all the code was written by us. It's all natural!
+
+ - The Schmipo class is the entry point into our AI program. It is effectively just an API to communicate with the referee. Schmipo creates an instance of the board class, passing the moves the other player makes to the board, and asking it for a good move when it's our turn.
+
+ - All of the move making logic is inside the board class. Boards can easily be duplicated so we can do searching through possible board states.
+
+## General Strategy ##
+
+Our basic strategy was simple, create a situation where our AI had multiple paths to win. This would be far harder for our opponent to block than simply going for the quickest win. Everything involved in our design had this key principle in mind.
+
+## Search Strategy ##
+ - If we get to move first, we pick the bottom right corner. We found the corners to be solid starting places through trial and error. Corners open up the possibilities for both tripods and loops.
+
+- Making a move was split into 2 portions.
+
+Heuristics:
+
+The heuristic moves are moves made before the board reaches the “Heuristic depth”. The heuristic moves were introduced in order to put our AI in the best position possible, and to allow it to make use of its evaluation function. If left uninterrupted, the AI will create 2 chains, one of length 3  along a corner, touching 2 sides, and one of length 2 opposite the original chain. This position contains multiple critical cells already, and is on the path to forcing the win if the opponent can only read moves 3 or less turns in advance.
+
+Minimax:
+Once the heuristic depth has been breached, minimax search takes over. Currently, we are searching with cutoff 3, which allows us to see 2 of our moves and 1 of our opponents moves into the future. With the bonus component of the evaluation function, we can 1 move further ahead.
+
+Importantly, our minimax function only considers cells that are adjacent to any taken cells as relevant. This cuts down our search space dramatically.
+
+## Our evaluation functions ##
+
+Our evaluation function is comprised of 3 or 4 key sections:
+
+Section 1: Edge touching
+
+Edge touching is very simple, if a cell that touches an edge belongs to the AI, add 1 to the score. If a cell that touches an edge belongs to the other player, minus 1 from the score.
+While simple this technique constantly encourages the AI to choose a edge piece over a non edge piece of equal value. It also encourages the AI to block the opponent using an edge piece over a non edge piece of equal value.
+
+Section 2: Largest chain
+
+The largest chain belonging to an AI is the largest number of connected cells that all belong to the AI. The length of this largest chain is added to the score. Doing this encourages the AI to merge large chains together whenever it has the chance. This in turn increases the possibility for loops and tripods.
+
+Section 3: Criticals
+
+Criticals are cells that are able to join 1 or more chains of length 2 or greater together. Importantly this means that cells that form loops are criticals, since when cell joins to parts of 1 chain together, they form a loop. They are also able to merge chains. By encouraging increasing the number of critical cells we cause our AI to create a board state that allows for multiple paths of winning. Which ties into the last optional evaluation function.
+
+Section 4: Winners
+
+If the minimax depth is an odd number, this means whenever the evaluation function was called, the cells that was about to be placed belonged to the Enemy, if even it belongs to the AI. Since our AI is designed to find multiple winning paths, it really benefits from being about to see it’s own turns many moves ahead. The Winners are simply calculated by filling a critical cell and seeing if that causes a winning board state. Importantly, the more winners there are, the higher the score, as the number of winners^2 is added to the score. This pushes the AI to find as many paths to victory as possible, abeit, a the sacrifice of defensive play.
+
+## Creative Techniques ##
+
+We were able to do pretty fast loop detection using an improved version of our old red (redundancy) checking algorithm.
+
+We can look at any cell, loop over around it's adjacent cells clockwise. Mark down the pattern around it, for example, block, gap, block, and depending on the outcome, we could avoid rescanning the entire board for loops. This means it many cases, we could add a cell, and check for new loops in constant time.
