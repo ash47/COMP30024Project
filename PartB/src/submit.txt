@@ -1,0 +1,9 @@
+REWRITE THIS: submit COMP30024 A "aschmid_rport/fencemaster/Board.java" "aschmid_rport/fencemaster/Cell.java" "aschmid_rport/fencemaster/Graph.java" "aschmid_rport/fencemaster/Main.java" "aschmid_rport/fencemaster/TripodGraph.java" "manifest.mf" "comments.txt"
+
+REWRITE THIS: verify -t COMP30024 A
+
+# Compiling
+/usr/java1.6/bin/javac aiproj/fencemaster/Referee.java aschmid_rport/fencemaster/Schmipo.java
+
+# Running
+/usr/java1.6/bin/java -Xmx2m aiproj/fencemaster/Referee 6 aschmid_rport.fencemaster.Schmipo aschmid_rport.fencemaster.Schmipo

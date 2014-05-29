@@ -2,6 +2,11 @@ package aschmid_rport.fencemaster;
 
 import java.util.ArrayList;
 
+/**
+ * This class represents tripods om a board
+ * @author aschmid (584770), rport (586116)
+ *
+ */
 public class Chain {
 	/** The ID of the chain */
 	int id;
@@ -24,8 +29,13 @@ public class Chain {
 	/** All the cells in this chain*/
 	private ArrayList<Cell> cells;
 	
-	public Chain(int an_id, int a_playerID)
-	{
+	/**
+	 * Creates a new chain
+	 * @param an_id A unique ID for this chain
+	 * @param a_playerID The player who owns this chain
+	 */
+	public Chain(int an_id, int a_playerID) {
+		// Store instance variables
 		id = an_id;
 		playerID = a_playerID;
 		side_count = 0;
@@ -38,8 +48,8 @@ public class Chain {
 	 * Copy constructor for the Chain class
 	 * @param original
 	 */
-	public Chain(Chain original)
-	{
+	public Chain(Chain original) {
+		// Copy variables into our new chain
 		side_count = original.getSide_Count();
 		sides = original.getSides();
 		cells = new ArrayList<Cell>();
@@ -49,38 +59,34 @@ public class Chain {
 	}
 	
 	/**
-	 * Gets the side count
+	 * Gets the number of sides this chain is touching
 	 * @return side_count
 	 */
-	public int getSide_Count()
-	{
+	public int getSide_Count() {
 		return side_count;
 	}
 	
 	/**
-	 * Gets the ID
+	 * Gets the ID of the chain
 	 * @return Chain ID
 	 */
-	public int getID()
-	{
+	public int getID() {
 		return id;
 	}
 	
 	/**
-	 * Gets the playerID
+	 * Gets the playerID of the chain
 	 * @return playerID
 	 */
-	public int getPlayerID()
-	{
+	public int getPlayerID() {
 		return playerID;
 	}
 	
 	/**
-	 * Gets the length
+	 * Gets the length of the chain
 	 * @return length
 	 */
-	public int getLength()
-	{
+	public int getLength() {
 		return length;
 	}
 	
@@ -89,8 +95,7 @@ public class Chain {
 	 * @param side
 	 * @return true if touches, false if not
 	 */
-	public boolean hasSide(int side)
-	{
+	public boolean hasSide(int side) {
 		// Check if a given side is touched
 		return (sides&side) != 0;
 	}
@@ -99,8 +104,7 @@ public class Chain {
 	 * Sets the side as touched
 	 * @param side
 	 */
-	public void setSide(int side)
-	{
+	public void setSide(int side) {
 		if(side > 0 && !hasSide(side)) {
 			// Increase number of sides touched
 			side_count++;
@@ -114,8 +118,7 @@ public class Chain {
 	 * Gets the sides of the chain
 	 * @return sides
 	 */
-	public int getSides()
-	{
+	public int getSides() {
 		return sides;
 	}
 	
@@ -123,13 +126,15 @@ public class Chain {
 	 * Gets the cells of the chain
 	 * @return cells
 	 */
-	public ArrayList<Cell> getCells()
-	{
+	public ArrayList<Cell> getCells() {
 		return cells;
 	}
 	
-	public void add_cell(Cell cell)
-	{
+	/**
+	 * Adds a cell into the chain
+	 * @param cell The cell to add into this chain
+	 */
+	public void add_cell(Cell cell) {
 		cells.add(cell);
 		cell.setChainID(id);
 		length++;

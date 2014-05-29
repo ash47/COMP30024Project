@@ -4,11 +4,14 @@ import java.io.PrintStream;
 
 import aiproj.fencemaster.* ;
 
+/**
+ * This is our AI which makes fancy moves
+ * @author aschmid (584770), rport (586116)
+ *
+ */
 public class Schmipo implements Player, Piece {
-	
 	/** The ID of this player */
 	int playerID;
-	
 	
 	/** The board dimension */
 	public int dim;
@@ -25,6 +28,7 @@ public class Schmipo implements Player, Piece {
 		
 		// Store player
 		this.playerID = p;
+		
 		// User can swap
 		this.canSwap = true;
 		
@@ -36,8 +40,8 @@ public class Schmipo implements Player, Piece {
 	}
 	
 	public Move makeMove() {
-		Move move = board.makeMove(playerID);
-		return move;
+		// Ask the board to generate us a move
+		return board.makeMove(playerID);
 	}
 	
 	public int opponentMove(Move m) {
