@@ -84,7 +84,10 @@ public class Board {
 		
 		// Create each cell
 		for(int y=0; y<2*dim-1; y++) {
+			// Work out how many columns are in this row
 			int rowSize = getRowSize(y);
+			
+			// Create a cell for each column
 			cells[y] = new Cell[rowSize];
 			for(int x=0; x<rowSize; x++) {
 				cells[y][x] = new Cell(PLAYER_NONE, y, unmapX(x, y));
@@ -93,8 +96,11 @@ public class Board {
 		
 		// There is no winner at the start
 		this.winner = Piece.INVALID;
+		
 		//No turns have occured yet
 		this.turn = 0;
+		
+		// House keeping variables
 		this.heuristic_depth = 10;
 		this.minimax_cutoff = 5;
 		this.total_cells  = 3*(dim*dim - dim) + 1;
@@ -108,8 +114,8 @@ public class Board {
 	 * Copy constructor for the board class
 	 * @param original board to be copied
 	 */
-	public Board(Board original)
-	{
+	public Board(Board original) {
+		// Copy variables
 		dim = original.dim;
 		redLevel = original.redLevel;
 		winner = original.getWinner();
@@ -120,27 +126,32 @@ public class Board {
 		filled = original.filled;
 		lastMove = original.lastMove;
 		
+		// Copy cells over
 		cells = new Cell[2*dim - 1][];
-		for(int y = 0; y < 2*dim - 1; y++)
-		{
+		for(int y = 0; y < 2*dim - 1; y++) {
 			int rowSize = getRowSize(y);
 			cells[y] = new Cell[rowSize];
-			for(int x = 0; x < rowSize; x++)
-			{
+			for(int x = 0; x < rowSize; x++) {
 				cells[y][x] = new Cell(original.cells[y][x]);
 			}
 		}
 		
+		// Copy chains over
 		chains = new ArrayList<Chain>();
 		Iterator<Chain> the_chains = original.chains.iterator();
-		while(the_chains.hasNext())
-		{
+		while(the_chains.hasNext()) {
+			// Grab an old chain
 			Chain old_chain = the_chains.next();
+			
+			// Create a new chain
 			Chain new_chain = new Chain(old_chain);
+			
+			// Store this chain
 			chains.add(new_chain);
+			
+			// Add cells to our new chain
 			Iterator<Cell> the_cells = old_chain.getCells().iterator();
-			while(the_cells.hasNext())
-			{
+			while(the_cells.hasNext()) {
 				Cell curr = the_cells.next();
 				int x = curr.getX();
 				int y = curr.getY();
@@ -170,6 +181,7 @@ public class Board {
 			return false;
 		}
 		
+		// It passes all our tests, it must be valid
 		return true;
 	}
 	
@@ -179,7 +191,7 @@ public class Board {
 	 * @param y given y
 	 * @return Returns the x in stored array format
 	 */
-	public int mapX(int x, int y){
+	public int mapX(int x, int y) {
 		if(y < this.dim) {
 			return x;
 		} else {
@@ -244,8 +256,10 @@ public class Board {
 			return null;
 		}
 		
+		// Map x to our array system
 		x = mapX(x, y);
 		
+		// Return the cell
 		return cells[y][x];
 	}
 	
@@ -257,12 +271,15 @@ public class Board {
 	 * @param player The color of the player to put into this cell
 	 */
 	public void setCell(int x, int y, int player) {
+		// Get the cell we want to fill
 		Cell cell = getCell(x, y);
 		
+		// Make sure we got something valid
 		if(cell != null) {
+			// Fill the cell
 			cell.setPlayer(player);
+			filled++;
 		}
-		filled++;
 	}
 	
 	/**
@@ -284,57 +301,73 @@ public class Board {
 		turn++;
 				
 		// Configure chains
+		
+		// Get all adjacent cells
 		Cell[] adj = getAdj(x, y);
 		boolean added = false;
-		for(int i = 0; i < MAX_ADJ; i++)
-		{
+		
+		// Loop over all adjacent cells
+		for(int i = 0; i < MAX_ADJ; i++) {
+			// Grab one of the adjacent cells
 			Cell adj_cell = adj[i];
-			if(adj_cell != null)
-			{
-				if(adj_cell.getPlayer() == player)
-				{
-					if(added == false)
-					{
+			
+			// Ensure the cell is actually valid
+			if(adj_cell != null) {
+				// Ensure the cell is owned by the player making the move
+				if(adj_cell.getPlayer() == player) {
+					// Check if we've already added a cell
+					if(added == false) {
+						// Grab the ID if the already existing chain
 						int ID = adj_cell.getChainID();
 						//cell.setChainID(ID);
+						
+						// Add the cell to the chain
 						Chain chain = getChain(ID);
 						chain.add_cell(cell);
+						
+						// Check if it's touching a side
 						int side;
-						if((side = getSide(x, y)) > 0)
-						{
+						if((side = getSide(x, y)) > 0) {
 							chain.setSide(side);
 						}
-						added = true;
-						if(chain.getSide_Count() >= 3)winner = player;
-					}
-					else
-					{
 						
+						added = true;
+						
+						// Check for a winner
+						if(chain.getSide_Count() >= 3) {
+							winner = player;
+						}
+					} else {
+						// Grab the created chain
 						int set_ID = cell.getChainID();
 						int merge_ID = adj_cell.getChainID();
-						if(set_ID != merge_ID)
-						{
+						
+						// Check if we need to merge the chains
+						if(set_ID != merge_ID) {
+							// Do the merge
 							merge_chains(set_ID, merge_ID);
 						}
 					}
 				}
 			}
 		}
-		if(added == false)
-		{
+		
+		// Check if this cell was added to a chain
+		if(added == false) {
+			// Nope, create a brand new chain
 			Chain chain = new Chain(chainIDs, player);
 			chain.add_cell(cell);
 			chains.add(chain);
 			chainIDs++;
+			
+			// Check if it's touching any sides
 			int side;
-			if((side = getSide(x, y)) > 0)
-			{
+			if((side = getSide(x, y)) > 0) {
 				chain.setSide(side);
 			}
 		}
 		
-		
-		
+		// Check what sort of red pattern we found
 		if(pattern == -1) {
 			// This cell is a block cell
 			cell.setRed(0);
@@ -349,7 +382,10 @@ public class Board {
 			}
 		}
 		//If all the cells are filled and there is no winner, the match is a draw
-		if((filled >= total_cells)&&(winner < Piece.EMPTY)) winner = Piece.EMPTY;
+		if((filled >= total_cells) && (winner < Piece.EMPTY)) {
+			// Draw :(
+			winner = Piece.EMPTY;
+		}
 	}
 	
 	/**
@@ -485,13 +521,16 @@ public class Board {
 			
 			// Check if this cell is a block, or a gap
 			boolean block = false;
-			if((adjCell != null)&&(adjCell.getPlayer() == player)) {
-				if(scanning)
-				{
-					if((adjCell.getRed() != this.redLevel)) block = true;
-					else block = false;
+			if((adjCell != null) && (adjCell.getPlayer() == player)) {
+				if(scanning) {
+					if((adjCell.getRed() != this.redLevel)) {
+						block = true;
+					} else {
+						block = false;
+					}
+				} else {
+					block = true;
 				}
-				else block = true;
 			}
 			
 			if(mode == 0) { // Search for block
@@ -688,15 +727,25 @@ public class Board {
 	 * @param playerID the id of the player
 	 * @return The move that is calculated
 	 */
-	public Move makeMove(int playerID)
-	{
+	public Move makeMove(int playerID) {
 		Move move;
 		
-		if(turn < 1) move = makefirstMove(playerID);
-		else if(turn < heuristic_depth) move = makeheuristicMove(playerID);
-		else move = makeminimaxMove(playerID);
+		// Decide what sort of move to make
+		if(turn < 1) {
+			// First move, lets pick a corner
+			move = makefirstMove(playerID);
+		} else if(turn < heuristic_depth) {
+			// Use our heuristics to make a move
+			move = makeheuristicMove(playerID);
+		} else {
+			// Use mini max
+			move = makeminimaxMove(playerID);
+		}
+		
+		// Fill the cell
 		fillCell(move.Col, move.Row, move.P);
 		
+		// Give them a move
 		return move;
 	}
 	
@@ -704,8 +753,8 @@ public class Board {
 	 * Makes the move if the player is playing first
 	 * @return The first move, at position 0,0
 	 */
-	private Move makefirstMove(int playerID)
-	{
+	private Move makefirstMove(int playerID) {
+		// Just pick the top left corner
 		return new Move(playerID, false, 0, 0);
 	}
 	
@@ -719,8 +768,7 @@ public class Board {
 	 * @param playerID the player id of the player making the move
 	 * @return the best move for turn 2
 	 */
-	private Move makesecondMove(int playerID)
-	{
+	private Move makesecondMove(int playerID) {
 		int enemy = 2 - playerID + 1;
 		Move move;
 		move = new Move(playerID, false, 0, 0);
