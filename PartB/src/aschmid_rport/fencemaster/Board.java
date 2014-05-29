@@ -7,6 +7,10 @@ import java.util.Iterator;
 import aiproj.fencemaster.Move;
 import aiproj.fencemaster.Piece;
 
+/**
+ * Main board class
+ * @author aschmid (584770), rport (586116)
+ */
 public class Board {
 	/** The size of the board */
 	private int dim;
@@ -153,6 +157,11 @@ public class Board {
 	 * @return Is this cell valid?
 	 */
 	public boolean isValidCell(int x, int y) {
+		// Anything negative is invalid
+		if(x < 0 ||  y < 0) {
+			return false;
+		};
+		
 		// Valid cells are integer pairings on the plane described by {abs(x-(n-1))<=(n-1), abs(y-(n-1))<=(n-1), abs(x-y)<=n-1}
 		// Checks for integers out of the range and returns false if found
 		if(	Math.abs(x-(this.dim-1)) > (this.dim-1) ||
@@ -536,7 +545,16 @@ public class Board {
 	 */
 	public boolean cellTaken(int x, int y) {
 		// Check if the cell has a player in it
-		return getCell(x, y).getPlayer() != PLAYER_NONE;
+		Cell cell = getCell(x, y);
+		
+		// Make sure we got a valid cell
+		if(cell == null) {
+			// Not valid, report this cell as taken
+			return true;
+		}
+		
+		// Actually check if the cell is taken
+		return cell.getPlayer() != PLAYER_NONE;
 	}
 	
 	

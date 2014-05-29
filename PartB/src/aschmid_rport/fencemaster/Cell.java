@@ -1,5 +1,9 @@
 package aschmid_rport.fencemaster;
 
+/**
+ * This class represents a cell on the board
+ * @author aschmid (584770), rport (586116)
+ */
 public class Cell {
 	/** The ID of the player who is in this cell */
 	private int player;

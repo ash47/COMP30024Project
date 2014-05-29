@@ -2,6 +2,11 @@ package aschmid_rport.fencemaster;
 
 import java.util.ArrayList;
 
+/**
+ * This class represents tripods om a board
+ * @author aschmid (584770), rport (586116)
+ *
+ */
 public class Chain {
 	/** The ID of the chain */
 	int id;
@@ -24,6 +29,11 @@ public class Chain {
 	/** All the cells in this chain*/
 	private ArrayList<Cell> cells;
 	
+	/**
+	 * Creates a new chain
+	 * @param an_id A unique ID for this chain
+	 * @param a_playerID The player who owns this chain
+	 */
 	public Chain(int an_id, int a_playerID)
 	{
 		id = an_id;
@@ -49,7 +59,7 @@ public class Chain {
 	}
 	
 	/**
-	 * Gets the side count
+	 * Gets the number of sides this chain is touching
 	 * @return side_count
 	 */
 	public int getSide_Count()
@@ -58,7 +68,7 @@ public class Chain {
 	}
 	
 	/**
-	 * Gets the ID
+	 * Gets the ID of the chain
 	 * @return Chain ID
 	 */
 	public int getID()
@@ -67,7 +77,7 @@ public class Chain {
 	}
 	
 	/**
-	 * Gets the playerID
+	 * Gets the playerID of the chain
 	 * @return playerID
 	 */
 	public int getPlayerID()
@@ -76,7 +86,7 @@ public class Chain {
 	}
 	
 	/**
-	 * Gets the length
+	 * Gets the length of the chain
 	 * @return length
 	 */
 	public int getLength()
@@ -128,6 +138,10 @@ public class Chain {
 		return cells;
 	}
 	
+	/**
+	 * Adds a cell into the chain
+	 * @param cell The cell to add into this chain
+	 */
 	public void add_cell(Cell cell)
 	{
 		cells.add(cell);
