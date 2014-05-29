@@ -1210,9 +1210,12 @@ public class Board {
 			if(isCritical(x, y, me) == true)
 			{
 				score += turn/3;
-				Board cpy = new Board(board);
-				cpy.fillCell(x, y, me);
-				if(cpy.getWinner() == me) win_count++;
+				if((minimax_cutoff % 2) == 1)
+				{
+					Board cpy = new Board(board);
+					cpy.fillCell(x, y, me);
+					if(cpy.getWinner() == me) win_count++;
+				}
 			}
 		}
 		score+= 3*(win_count*win_count)/(turn/2);
