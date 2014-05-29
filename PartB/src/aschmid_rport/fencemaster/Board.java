@@ -7,6 +7,10 @@ import java.util.Iterator;
 import aiproj.fencemaster.Move;
 import aiproj.fencemaster.Piece;
 
+/**
+ * Main board class
+ * @author aschmid (584770), rport (586116)
+ */
 public class Board {
 	/** The size of the board */
 	private int dim;
@@ -89,6 +93,7 @@ public class Board {
 		
 		// There is no winner at the start
 		this.winner = Piece.INVALID;
+		
 		//No turns have occured yet
 		this.turn = 0;
 		this.heuristic_depth = 8;
@@ -104,8 +109,8 @@ public class Board {
 	 * Copy constructor for the board class
 	 * @param original board to be copied
 	 */
-	public Board(Board original)
-	{
+	public Board(Board original) {
+		// Create board variables
 		dim = original.dim;
 		redLevel = original.redLevel;
 		winner = original.getWinner();
@@ -116,27 +121,27 @@ public class Board {
 		filled = original.filled;
 		lastMove = original.lastMove;
 		
+		// Copy all the cells over
 		cells = new Cell[2*dim - 1][];
-		for(int y = 0; y < 2*dim - 1; y++)
-		{
+		for(int y = 0; y < 2*dim - 1; y++) {
 			int rowSize = getRowSize(y);
 			cells[y] = new Cell[rowSize];
-			for(int x = 0; x < rowSize; x++)
-			{
+			for(int x = 0; x < rowSize; x++) {
 				cells[y][x] = new Cell(original.cells[y][x]);
 			}
 		}
 		
+		// Copy chains over
 		chains = new ArrayList<Chain>();
 		Iterator<Chain> the_chains = original.chains.iterator();
-		while(the_chains.hasNext())
-		{
+		while(the_chains.hasNext()) {
 			Chain old_chain = the_chains.next();
 			Chain new_chain = new Chain(old_chain);
 			chains.add(new_chain);
+			
+			// Copy cells into our new chains
 			Iterator<Cell> the_cells = old_chain.getCells().iterator();
-			while(the_cells.hasNext())
-			{
+			while(the_cells.hasNext()) {
 				Cell curr = the_cells.next();
 				int x = curr.getX();
 				int y = curr.getY();
@@ -235,8 +240,10 @@ public class Board {
 			return null;
 		}
 		
+		// Get the array x position
 		x = mapX(x, y);
 		
+		// Return the actual cell
 		return cells[y][x];
 	}
 	
@@ -248,9 +255,12 @@ public class Board {
 	 * @param player The color of the player to put into this cell
 	 */
 	public void setCell(int x, int y, int player) {
+		// Grab a cell
 		Cell cell = getCell(x, y);
 		
+		// Make sure we found a cell
 		if(cell != null) {
+			// Set the cell
 			cell.setPlayer(player);
 		}
 		filled++;
@@ -275,57 +285,69 @@ public class Board {
 		turn++;
 				
 		// Configure chains
+		
+		// Grab all adjacent cells
 		Cell[] adj = getAdj(x, y);
 		boolean added = false;
-		for(int i = 0; i < MAX_ADJ; i++)
-		{
+		for(int i = 0; i < MAX_ADJ; i++) {
+			// Grab an adjacent cell
 			Cell adj_cell = adj[i];
-			if(adj_cell != null)
-			{
-				if(adj_cell.getPlayer() == player)
-				{
-					if(added == false)
-					{
+			
+			// Check to seee if we found one
+			if(adj_cell != null) {
+				// Yep, make sure it belongs to the player who's turn it is
+				if(adj_cell.getPlayer() == player) {
+					// It does, have we added cells before?
+					if(added == false) {
+						// No, get the adj. cell's chain
 						int ID = adj_cell.getChainID();
 						//cell.setChainID(ID);
 						Chain chain = getChain(ID);
+						
+						// Add this cell into the chain
 						chain.add_cell(cell);
+						
+						// See if it's touching any sides
 						int side;
-						if((side = getSide(x, y)) > 0)
-						{
+						if((side = getSide(x, y)) > 0) {
 							chain.setSide(side);
 						}
-						added = true;
-						if(chain.getSide_Count() >= 3)winner = player;
-					}
-					else
-					{
 						
+						added = true;
+						
+						// Check for a winner
+						if(chain.getSide_Count() >= 3) {
+							winner = player;
+						}
+					} else {
+						// Grab our existing chains
 						int set_ID = cell.getChainID();
 						int merge_ID = adj_cell.getChainID();
-						if(set_ID != merge_ID)
-						{
+						if(set_ID != merge_ID) {
+							// Merge the two chains
 							merge_chains(set_ID, merge_ID);
 						}
 					}
 				}
 			}
 		}
-		if(added == false)
-		{
+		
+		// If we didn't merge into any chains
+		if(added == false) {
+			// Create a new chain
 			Chain chain = new Chain(chainIDs, player);
 			chain.add_cell(cell);
 			chains.add(chain);
 			chainIDs++;
+			
+			// Check to see if it touches any sides
 			int side;
-			if((side = getSide(x, y)) > 0)
-			{
+			if((side = getSide(x, y)) > 0) {
 				chain.setSide(side);
 			}
 		}
 		
-		
-		
+		// Check the red stuff
 		if(pattern == -1) {
 			// This cell is a block cell
 			cell.setRed(0);
@@ -340,7 +362,9 @@ public class Board {
 			}
 		}
 		//If all the cells are filled and there is no winner, the match is a draw
-		if((filled >= total_cells)&&(winner < Piece.EMPTY)) winner = Piece.EMPTY;
+		if(filled >= total_cells && winner < Piece.EMPTY) {
+			winner = Piece.EMPTY;
+		}
 	}
 	
 	/**
@@ -476,13 +500,18 @@ public class Board {
 			// Check if this cell is a block, or a gap
 			boolean block = false;
 			if((adjCell != null)&&(adjCell.getPlayer() == player)) {
-				if(scanning)
-				{
-					if((adjCell.getRed() != this.redLevel)) block = true;
-					else block = false;
+				if(scanning) {
+					if((adjCell.getRed() != this.redLevel)) {
+						block = true;
+					} else {
+						block = false;
+					}
+				} else {
+					block = true;
 				}
-				else block = true;
 			}
+			
+			// Mode detection
 			
 			if(mode == 0) { // Search for block
 				// Block
@@ -608,20 +637,16 @@ public class Board {
 	 * @param y2
 	 * @return true if adjacent false if not
 	 */
-	public boolean isAdj(int x1, int y1, int x2, int y2)
-	{
-		if(x2 == x1)
-		{
-			if(y2 == (y1 - 1))return true;// Up
-			if(y2 == (y1 + 1))return true;// Down
+	public boolean isAdj(int x1, int y1, int x2, int y2) {
+		if(x2 == x1) {
+			if(y2 == (y1 - 1))return true; // Up
+			if(y2 == (y1 + 1))return true; // Down
 		}
-		if(x2 == (x1 - 1))
-		{
-			if(y2 == (y1 - 1))return true;// Up left
-			if(y2 == y1)return true;// Left
+		if(x2 == (x1 - 1)) {
+			if(y2 == (y1 - 1))return true; // Up left
+			if(y2 == y1)return true; // Left
 		}
-		if(x2 == (x1 + 1))
-		{
+		if(x2 == (x1 + 1)) {
 			if(y2 == y1)return true; //Right
 			if(y2 == (y1 + 1))return true; // Down right
 		}
@@ -687,12 +712,15 @@ public class Board {
 				Cell current = getCell(x,y);
 				if(current != null) {
 					int player = current.getPlayer();
-					if(player == 0)
-					{
-						if(isCritical(x, y, 1)||isCritical(x, y, 2))output.print("C ");
-						else output.print("- ");
+					if(player == 0) {
+						if(isCritical(x, y, 1)||isCritical(x, y, 2)) {
+							output.print("C ");
+						} else {
+							output.print("- ");
+						}
+					} else {
+						output.print(char_array[current.getPlayer()]+" ");
 					}
-					else output.print(char_array[current.getPlayer()]+" ");
 				}
 			}
 			
@@ -706,7 +734,6 @@ public class Board {
 	 * @param output The output stream to print to
 	 */
 	public void print_chains(PrintStream output) {
-		
 		// Iterates over whole board printing out each token
 		for(int y = 0; y < 2*this.dim - 1; y++) {
 			// Adds space buffer for nice hexagon effect
@@ -718,8 +745,11 @@ public class Board {
 			for(int x = 0; x < 2*this.dim - 1; x++) {
 				Cell current = getCell(x,y);
 				if(current != null) {
-					if(current.getChainID() == -1)output.print("- ");
-					else output.print(current.getChainID()+" ");
+					if(current.getChainID() == -1) {
+						output.print("- ");
+					} else {
+						output.print(current.getChainID()+" ");
+					}
 				}
 			}
 			
@@ -733,15 +763,22 @@ public class Board {
 	 * @param playerID the id of the player
 	 * @return The move that is calculated
 	 */
-	public Move makeMove(int playerID)
-	{
+	public Move makeMove(int playerID) {
 		Move move;
 		
-		if(turn < 1) move = makefirstMove(playerID);
-		else if(filled < heuristic_depth) move = makeheuristicMove(playerID);
-		else move = makeminimaxMove(playerID);
+		// Decide which search to use
+		if(turn < 1) {
+			move = makefirstMove(playerID);
+		} else if(filled < heuristic_depth) {
+			move = makeheuristicMove(playerID);
+		} else {
+			move = makeminimaxMove(playerID);
+		}
+		
+		// Fill the cell
 		fillCell(move.Col, move.Row, move.P);
 		
+		// Return the move
 		return move;
 	}
 	
@@ -749,8 +786,7 @@ public class Board {
 	 * Makes the move if the player is playing first
 	 * @return The first move, at position 0,0
 	 */
-	private Move makefirstMove(int playerID)
-	{
+	private Move makefirstMove(int playerID) {
 		return new Move(playerID, false, (2*dim - 2), (2*dim - 2));
 	}
 	
@@ -764,108 +800,129 @@ public class Board {
 	 * @param playerID the player id of the player making the move
 	 * @return the best move for turn 2
 	 */
-	private Move makesecondMove(int playerID)
-	{
+	private Move makesecondMove(int playerID) {
+		// Workout who the enemy is
 		int enemy = 2 - playerID + 1;
-		Move move;
-		move = new Move(playerID, false, 0, 0);
 		
+		// Create a default move
+		Move move = new Move(playerID, false, 0, 0);
+		
+		// Find where the enemy started
 		Vec2 enemy_start = get_enemy_start(enemy);
 		
-		if(enemy_start.getY() < (dim - 1)) move.Row = 2*dim - 2;
-		else if(enemy_start.getY() == (dim - 1))move.Row = (dim - 1);
-		else move.Row = 0;
+		// Try to go in the opposite corner
+		if(enemy_start.getY() < (dim - 1)) {
+			move.Row = 2*dim - 2;
+		} else if(enemy_start.getY() == (dim - 1)) {
+			move.Row = (dim - 1);
+		} else {
+			move.Row = 0;
+		}
 		
 		if(move.Row == 0){
-			if(enemy_start.getX() < (getRowSize(enemy_start.getY())/2)) move.Col = dim - 1;
-			else move.Col = 0;
+			if(enemy_start.getX() < (getRowSize(enemy_start.getY())/2)) {
+				move.Col = dim - 1;
+			} else {
+				move.Col = 0;
+			}
 		}
 		if(move.Row == (dim - 1)){
-			if(enemy_start.getX() < (getRowSize(enemy_start.getY())/2)) move.Col = 2*dim - 2;
-			else move.Col = 0;
+			if(enemy_start.getX() < (getRowSize(enemy_start.getY())/2)) {
+				move.Col = 2*dim - 2;
+			} else {
+				move.Col = 0;
+			}
 		}
 		if(move.Row == (2*dim - 2)){
-			if(mapX(enemy_start.getX(), enemy_start.getY()) < (getRowSize(enemy_start.getY())/2)) move.Col = 2*dim - 2;
-			else move.Col = (dim - 1);
+			if(mapX(enemy_start.getX(), enemy_start.getY()) < (getRowSize(enemy_start.getY())/2)) {
+				move.Col = 2*dim - 2;
+			} else {
+				move.Col = (dim - 1);
+			}
 		}
 		
 		return move;
 	}
 	
-	private Move makeheuristicMove(int playerID)
-	{
-		
-		//2nd turn, check if we wish to swap, if not take first move
-		if(turn == 1)
-		{
+	private Move makeheuristicMove(int playerID) {
+		// 2nd turn, check if we wish to swap, if not take first move
+		if(turn == 1) {
 			int corner[] = check_corners();
-			if(corner != null) return new Move(playerID, true, corner[1], corner[0]);
-			else return makesecondMove(playerID);
-		}
-		//For the rest of the turns try and construct a good position using heuristics
-		else
-		{
+			if(corner != null) {
+				return new Move(playerID, true, corner[1], corner[0]);
+			} else {
+				return makesecondMove(playerID);
+			}
+		} else { // For the rest of the turns try and construct a good position using heuristics
 			// If a swap took place
-			if(filled < 2)return makesecondMove(playerID);
+			if(filled < 2) {
+				return makesecondMove(playerID);
+			}
 			
 			int start[] = get_start(playerID);
 			Cell rels[] = getAdj(start[0], start[1]);
-			//try to place in optimal cells (touching sides)
-			for(int i = 0; i < MAX_ADJ; i++)
-			{
+			// try to place in optimal cells (touching sides)
+			for(int i = 0; i < MAX_ADJ; i++) {
 				Cell cell = rels[i];
 				if(	(cell != null)&&//Cell is valid
 					(cell.getPlayer() == 0)&&//Cell is empty
-					(getSide(cell.getY(), cell.getX()) > 0))//Cell touches a side
-				{
+					(getSide(cell.getY(), cell.getX()) > 0)) { // Cell touches a side
 					return new Move(playerID, false, cell.getY(), cell.getX());
 				}
 			}
-			//place in opposite cell if no optimal cells remain
+			// place in opposite cell if no optimal cells remain
 			int oppositeX = Math.abs(start[0] + 2*(((dim - 1) - start[0])/(dim - 1)));
 			int oppositeY = Math.abs(start[1] + 2*(((dim - 1) - start[1])/(dim - 1)));
-			Cell cell_opposite = getCell(oppositeX,oppositeY);
-			if(cell_opposite.getPlayer() == 0) return new Move(playerID, false, oppositeY, oppositeX);
 			
-			//place in adjacent cell to opposite cell if opposite cell is possessed
-			else if (cell_opposite.getPlayer() == playerID)
-			{
+			// Grab the opposite cell
+			Cell cell_opposite = getCell(oppositeX,oppositeY);
+			
+			// Ensure no one is in this cell
+			if(cell_opposite.getPlayer() == 0) {
+				// Take this cell
+				return new Move(playerID, false, oppositeY, oppositeX);
+			} else if (cell_opposite.getPlayer() == playerID) {
+				// place in adjacent cell to opposite cell if opposite cell is possessed
 				int oppositeX_adjX = Math.abs(oppositeX + (((dim - 1) - start[0])/(dim - 1)));
 				int oppositeX_adjY = Math.abs(oppositeY + ((start[0] - (dim - 1))/(dim - 1))*((Math.abs(start[1] - (dim - 1)) - (dim - 1))/(dim - 1)));
 				int oppositeY_adjX = Math.abs(oppositeX + ((start[1] - (dim - 1))/(dim - 1))*((Math.abs(start[0] - (dim - 1)) - (dim - 1))/(dim - 1)));
 				int oppositeY_adjY = Math.abs(oppositeY + (((dim - 1) - start[1])/(dim - 1)));
-				if(start[0] == (dim - 1))
-				{
+				
+				if(start[0] == (dim - 1)) {
 					if(start[1] == 0)oppositeX_adjX--;
 					else oppositeX_adjX++;
 				}
-				if(start[1] == (dim - 1))
-				{
+				
+				if(start[1] == (dim - 1)) {
 					if(start[0] == 0)oppositeY_adjY--;
 					else oppositeY_adjY++;
 				}
+				
+				// Grab the two adj cells
 				Cell cell_opposite_adjX = getCell(oppositeX_adjX,oppositeX_adjY);
 				Cell cell_opposite_adjY = getCell(oppositeY_adjX,oppositeY_adjY);
-				if(cell_opposite_adjY.getPlayer() == 0)return new Move(playerID, false, oppositeY_adjY, oppositeY_adjX);
-				else if(cell_opposite_adjX.getPlayer() == 0)return new Move(playerID, false, oppositeX_adjY, oppositeX_adjX);
+				
+				// Check if we can use them
+				if(cell_opposite_adjY.getPlayer() == 0) {
+					return new Move(playerID, false, oppositeY_adjY, oppositeY_adjX);
+				} else if(cell_opposite_adjX.getPlayer() == 0) {
+					return new Move(playerID, false, oppositeX_adjY, oppositeX_adjX);
+				}
 			}
 			
 			
 			//place in optimal cell of adjacent cell if there are not optimal cells or adjacent cells
-			for(int i = 0; i < MAX_ADJ; i++)
-			{
+			for(int i = 0; i < MAX_ADJ; i++) {
 				Cell cell = rels[i];
-				if(	(cell != null)&&//Cell is valid
-					(cell.getPlayer() == playerID))//Cell is mine
-				{
+				if(	(cell != null)&& //Cell is valid
+					(cell.getPlayer() == playerID)) { //Cell is mine
 					Cell rels2[] = getAdj(cell.getX(), cell.getY());
-					for(int j = 0; j < MAX_ADJ; j++)
-					{
+					for(int j = 0; j < MAX_ADJ; j++) {
 						Cell cell2 = rels2[j];
 						if(	(cell2 != null)&&//Cell is valid
 							(cell2.getPlayer() == 0)&&//Cell is empty
-							(getSide(cell2.getY(), cell2.getX()) > 0))//Cell is optimal
-						{
+							(getSide(cell2.getY(), cell2.getX()) > 0)) {
+							// Cell is optimal
 							return new Move(playerID, false, cell2.getY(), cell2.getX());
 						}
 					}
@@ -873,29 +930,30 @@ public class Board {
 				}
 			}
 			//place in any adjacent cell if there are not optimal cells
-			for(int i = 0; i < MAX_ADJ; i++)
-			{
+			for(int i = 0; i < MAX_ADJ; i++) {
+				// Grab the cell
 				Cell cell = rels[i];
-				if(	(cell != null)&&//Cell is valid
-					(cell.getPlayer() == 0))//Cell is empty
-				{
+				
+				// Ensure the cell is valid and empty
+				if(	cell != null &&	cell.getPlayer() == 0) {
 					return new Move(playerID, false, cell.getY(), cell.getX());
 				}
 			}
 			//place in adjacent cell of adjacent cell if there are not optimal cells or adjacent cells
-			for(int i = 0; i < MAX_ADJ; i++)
-			{
+			for(int i = 0; i < MAX_ADJ; i++) {
+				// Grab the cell
 				Cell cell = rels[i];
-				if(	(cell != null)&&//Cell is valid
-					(cell.getPlayer() == playerID))//Cell is mine
-				{
+				
+				// Ensure cell is valid and mine
+				if(cell != null && cell.getPlayer() == playerID) {
+					// Loop over adj cells
 					Cell rels2[] = getAdj(cell.getX(), cell.getY());
-					for(int j = 0; j < MAX_ADJ; j++)
-					{
+					for(int j = 0; j < MAX_ADJ; j++) {
+						// Grab a cell
 						Cell cell2 = rels2[j];
-						if(	(cell2 != null)&&//Cell is valid
-							(cell2.getPlayer() == 0))//Cell is empty
-						{
+						
+						// Ensure cell is valid and not taken
+						if(cell2 != null && cell2.getPlayer() == 0) { 
 							return new Move(playerID, false, cell2.getY(), cell2.getX());
 						}
 					}
@@ -904,6 +962,7 @@ public class Board {
 			}
 		}
 		
+		// Lets use minimax to pick a move
 		return makeminimaxMove(playerID);
 	}
 	
@@ -911,8 +970,7 @@ public class Board {
 	 * Makes move based on minimax algorithm
 	 * @return best move according to minimax algorithm
 	 */
-	private Move makeminimaxMove(int playerID)
-	{
+	private Move makeminimaxMove(int playerID) {
 		int me = playerID;
 		int enemy = 2 - me + 1;
 		
@@ -930,22 +988,29 @@ public class Board {
 		double bound = Integer.MIN_VALUE;
 		double temp_val = 0;
 		
-		//Create an iterator for the relevant celsl
+		// Create an iterator for the relevant celsl
 		Iterator<Vec2> rels = relevant_cells.iterator();
 		
-		while(rels.hasNext())
-		{
+		// Loop over all relevant cells
+		while(rels.hasNext()) {
+			// Grab the position of a cell
 			Vec2 curr = rels.next();
+			
+			// Create a new board
 			Board cpy = new Board(this);
+			
+			// Fill the cell we are testing
 			cpy.fillCell(curr.getX(), curr.getY(), me);
-			if((temp_val = min(cpy, enemy, depth + 1, bound)) > bound)
-			{
+			
+			// Work out scores for this board
+			if((temp_val = min(cpy, enemy, depth + 1, bound)) > bound) {
 				move.Row = curr.getY();
 				move.Col = curr.getX();
 				bound = temp_val;
 			}
 		}
 		
+		// Return our move
 		return move;
 	}
 	
@@ -956,52 +1021,54 @@ public class Board {
 	 * @param depth the current depth of the search
 	 * @return the lowest value as evaluated by the function
 	 */
-	private double min(Board board, int me, int depth, double bound)
-	{
+	private double min(Board board, int me, int depth, double bound) {
 		//Check for winner, returns -1 if enemy wins, 1 if me wins
 		int the_winner = board.getWinner();
 		int enemy = 2 - me + 1;
-		if(the_winner != 0)
-		{
-			if(the_winner == me) return -1*(minimax_cutoff - depth + 1);
-			else if(the_winner == Piece.INVALID) return 0;
-			else return (minimax_cutoff - depth + 1);
-		}
-		//If the max depth has been reached, return the evaluation of the board state
-		else if(depth >= minimax_cutoff)
-		{
+		if(the_winner != 0) {
+			if(the_winner == me) {
+				return -1*(minimax_cutoff - depth + 1);
+			} else if(the_winner == Piece.INVALID) {
+				return 0;
+			} else {
+				return (minimax_cutoff - depth + 1);
+			}
+		} else if(depth >= minimax_cutoff) {
+			// If the max depth has been reached, return the evaluation of the board state
 			Board cpy = new Board(board);
 			double result = board.eval(enemy, cpy);
-			//System.out.println("Result of this configuration is: "+result);
-			//board.print(System.out);
 			return result;
-		}
-		
-		else
-		{
-			
-			//Create an array list of relevant cells to consider
+		} else {
+			// Create an array list of relevant cells to consider
 			ArrayList<Vec2> relevant_cells = new ArrayList<Vec2>();
 			board.get_rels(relevant_cells, me);
 			
-			//The worst value so far
+			// The worst value so far
 			double worst_val = Integer.MAX_VALUE;
-			//if(bound > Integer.MIN_VALUE) worst_val = bound;
 			double temp_val = 0;
 			
 			//Create an iterator for the relevant cells
 			Iterator<Vec2> rels = relevant_cells.iterator();
 			
-			while(rels.hasNext())
-			{
+			// Loop over relevant cell positions
+			while(rels.hasNext()) {
+				// Grab the position of a cell
 				Vec2 curr = rels.next();
+				
+				// Copy the board
 				Board cpy = new Board(board);
+				
+				// Fill the chosen cell
 				cpy.fillCell(curr.getX(), curr.getY(), me);
+				
+				// Workout the scores for this board
 				temp_val = max(cpy, enemy, depth + 1, worst_val);
-				//System.out.println("Relevant cell ["+curr.getY()+", "+curr.getX()+"] has value "+temp_val);
-				if(temp_val <= bound) return temp_val;
-				if(temp_val < worst_val)
-				{
+				
+				if(temp_val <= bound) {
+					return temp_val;
+				}
+				
+				if(temp_val < worst_val) {
 					worst_val = temp_val;
 				}
 			}
@@ -1016,52 +1083,54 @@ public class Board {
 	 * @param depth the current depth of the search
 	 * @return the highest value as evaluated by the function
 	 */
-	private double max(Board board, int me, int depth, double bound)
-	{
+	private double max(Board board, int me, int depth, double bound) {
 		//Check for winner, returns -1 if enemy wins, 1 if me wins
 		int the_winner = board.getWinner();
 		int enemy = 2 - me + 1;
-		if(the_winner != 0)
-		{
-			if(the_winner == me) return (minimax_cutoff - depth + 1);
-			else if(the_winner == Piece.INVALID) return 0;
-			else return -1*(minimax_cutoff - depth + 1);
-		}
-		//If the max depth has been reached, return the evaluation of the board state
-		else if(depth >= minimax_cutoff)
-		{
+		if(the_winner != 0) {
+			if(the_winner == me) {
+				return (minimax_cutoff - depth + 1);
+			} else if(the_winner == Piece.INVALID) {
+				return 0;
+			} else {
+				return -1*(minimax_cutoff - depth + 1);
+			}
+		} else if(depth >= minimax_cutoff) {
+			// If the max depth has been reached, return the evaluation of the board state
 			Board cpy = new Board(board);
 			double result = board.eval(me, cpy);
-			//System.out.println("Result of this configuration is: "+result);
-			//board.print(System.out);
 			return result;
-		}
-		
-		else
-		{
-			
-			//Create an array list of relevant cells to consider
+		} else {
+			// Create an array list of relevant cells to consider
 			ArrayList<Vec2> relevant_cells = new ArrayList<Vec2>();
 			board.get_rels(relevant_cells, me);
 			
-			//The best value so far
+			// The best value so far
 			double best_val = Integer.MIN_VALUE;
-			//if(bound < Integer.MAX_VALUE) best_val = bound;
 			double temp_val = 0;
 			
-			//Create an iterator for the relevant cells
+			// Create an iterator for the relevant cells
 			Iterator<Vec2> rels = relevant_cells.iterator();
 			
-			while(rels.hasNext())
-			{
+			// Loop over relevant cell positions
+			while(rels.hasNext()) {
+				// Grab a cell position
 				Vec2 curr = rels.next();
+				
+				// Copy the board
 				Board cpy = new Board(board);
+				
+				// Fill the chosen cell
 				cpy.fillCell(curr.getX(), curr.getY(), me);
+				
+				// Workout scores for this board
 				temp_val = min(cpy, enemy, depth + 1, best_val);
-				//System.out.println("Relevant cell ["+curr.getY()+", "+curr.getX()+"] has value "+temp_val);
-				if(temp_val >= bound) return temp_val;
-				if(temp_val > best_val)
-				{
+				
+				if(temp_val >= bound) {
+					return temp_val;
+				}
+				
+				if(temp_val > best_val) {
 					best_val = temp_val;
 				}
 			}
@@ -1074,39 +1143,49 @@ public class Board {
 	 * Relevant cells are simply all the adjacent cells of all taken cells
 	 * @param relevant_cells
 	 */
-	private void get_rels(ArrayList<Vec2> relevant_cells, int playerID) 
-	{
+	private void get_rels(ArrayList<Vec2> relevant_cells, int playerID) {
 		boolean added[][] = new boolean[2*dim - 1][2*dim - 1];
 		/**
 		 * Loop over all cells to find taken cells
 		 * then loop over adjacent cells of taken cells and add them if they haven't been added already
 		 */
-		for(int y = 0; y < 2*dim-1; y++) 
-		{
+		for(int y = 0; y < 2*dim-1; y++) {
+			// find the size of the row
 			int rowSize = getRowSize(y);
-			for(int x = 0; x < rowSize; x++) 
-			{
-				if(cells[y][x].getPlayer() != 0)
-				{
+			
+			// Loop over every cell in this row
+			for(int x = 0; x < rowSize; x++) {
+				// See if there is a player in this cell
+				if(cells[y][x].getPlayer() != 0) {
+					// Yes, grab this cell
 					Cell cell = cells[y][x];
+					
+					// Grab the position of this cell
 					int X = cell.getX();
 					int Y = cell.getY();
+					
+					// Get all adjacent cells
 					Cell adj[] = getAdj(X, Y);
-					for(int i = 0; i < MAX_ADJ; i++)
-					{
-						if(adj[i] != null)
-						{
-							if(	(adj[i].getPlayer() == 0)&&
-								(added[adj[i].getY()][adj[i].getX()] != true))
-							{
-								if((cell.getPlayer() == playerID)||((cell.getX() == lastMove[0])&&(cell.getY() == lastMove[1])))
-								{
+					
+					// Loop over the adjacent cells
+					for(int i = 0; i < MAX_ADJ; i++) {
+						// If this cell isn't invalid
+						if(adj[i] != null) {
+							// Make sure this cell isn't taken, and we haven't already added it
+							if(adj[i].getPlayer() == 0 && added[adj[i].getY()][adj[i].getX()] != true) {
+								
+								// Make sure it's our player's cell, or it was one of our last moves
+								if(cell.getPlayer() == playerID || (cell.getX() == lastMove[0] && cell.getY() == lastMove[1])) {
+									// Add this as a relevant cell
 									relevant_cells.add(0, new Vec2(adj[i].getX(), adj[i].getY()));
+									
+									// Store this cell as added
 									added[adj[i].getY()][adj[i].getX()] = true;
-								}
-								else
-								{
+								} else {
+									// Add to enemies list of relevant cells
 									relevant_cells.add(new Vec2(adj[i].getX(), adj[i].getY()));
+									
+									// Store this cell as added
 									added[adj[i].getY()][adj[i].getX()] = true;
 								}
 							}
@@ -1124,35 +1203,47 @@ public class Board {
 	 * @param relevant_cells
 	 * @param playerID
 	 */
-	private int get_player_rels(ArrayList<Vec2> relevant_cells, int playerID) 
-	{
+	private int get_player_rels(ArrayList<Vec2> relevant_cells, int playerID) {
 		int score = 0;
 		boolean added[][] = new boolean[2*dim - 1][2*dim - 1];
 		/**
 		 * Loop over all cells to find taken cells
 		 * then loop over adjacent cells of taken cells and add them if they haven't been added already
 		 */
-		for(int y = 0; y < 2*dim-1; y++) 
-		{
+		
+		// Loop over every row
+		for(int y = 0; y < 2*dim-1; y++) {
+			// Find the size of this row
 			int rowSize = getRowSize(y);
-			for(int x = 0; x < rowSize; x++) 
-			{
-				if(cells[y][x].getPlayer() == playerID)
-				{
+			
+			// Loop over every clel in this row
+			for(int x = 0; x < rowSize; x++) {
+				// Check if this cell brlongs to our player
+				if(cells[y][x].getPlayer() == playerID) {
+					// Grab the cell
 					Cell cell = cells[y][x];
+					
+					// Grab the position of the cell
 					int X = cell.getX();
 					int Y = cell.getY();
+					
+					// Find adjacent cells
 					Cell adj[] = getAdj(X, Y);
+					
+					// Get chain sizes
 					int temp_length = getChain(cell.getChainID()).getLength();
 					if(temp_length > score)score = temp_length;
-					for(int i = 0; i < MAX_ADJ; i++)
-					{
-						if(adj[i] != null)
-						{
-							if(	(adj[i].getPlayer() == 0)&&
-								(added[adj[i].getY()][adj[i].getX()] != true))
-							{
+					
+					// Loop over adjacent cells
+					for(int i = 0; i < MAX_ADJ; i++) {
+						// If this adj cell exists
+						if(adj[i] != null) {
+							// Ensure this cell is empty and not added
+							if(adj[i].getPlayer() == 0 && added[adj[i].getY()][adj[i].getX()] != true) {
+								// Add this cell to our list of relevant cells
 								relevant_cells.add(new Vec2(adj[i].getX(), adj[i].getY()));
+								
+								// Store it as added
 								added[adj[i].getY()][adj[i].getX()] = true;
 							}
 						}
@@ -1168,50 +1259,58 @@ public class Board {
 	 * @param me the playerID of the player who called the minimax algorithm
 	 * @return the evaluation value
 	 */
-	private double eval(int me, Board board)
-	{
+	private double eval(int me, Board board) {
 		double score = 0;
 		int enemy = 2 - me + 1;
+		
 		//Arbitrary eval function for testing
 		
-		for(int y = 0; y < 2*dim - 1; y++)
-		{
+		// Loop over every row
+		for(int y = 0; y < 2*dim - 1; y++) {
+			// Grab the size of the current row
 			int RowSize = getRowSize(y);
-			for(int x = 0; x < RowSize; x++)
-			{
+			
+			// Loop over every cell in this row
+			for(int x = 0; x < RowSize; x++) {
+				// Grab a cell
 				Cell cell = getCell(x, y);
-				if(cell != null)
-				{
-					if(		(getSide(cell.getX(), cell.getY()) > 0)&&
-							(cell.getPlayer() == me))
-					{	
-						score++;
-					}
-					else if(	(getSide(cell.getX(), cell.getY()) > 0)&&
-								(cell.getPlayer() == enemy))
-					{
-						score--;
+				
+				// Make sure the cell is valid
+				if(cell != null) {
+					// Check if it's touching a side or not
+					if(getSide(cell.getX(), cell.getY()) > 0) {
+						// Check if either of us own it
+						if(cell.getPlayer() == me) {
+							score ++;
+						} else if(cell.getPlayer() == enemy) {
+							score--;
+						}
 					}
 				}
 			}
 		}
 		
+<<<<<<< HEAD
 		int checking;
 		if((minimax_cutoff % 2) == 1)checking = enemy;
 		else checking = me;
 		
+=======
+		// Get all relevant cells
+>>>>>>> be9aa93254e40a684326d76415c5223509eb6150
 		ArrayList<Vec2> my_relevant_cells = new ArrayList<Vec2>();
 		int longest_chain = get_player_rels(my_relevant_cells, checking);
 		if(checking == me) score += longest_chain;
 		
+		// Loop over relevant cells
 		Iterator<Vec2> my_rels = my_relevant_cells.iterator();
 		int win_count = 0;
-		while(my_rels.hasNext())
-		{
-			
+		while(my_rels.hasNext()) {
+			// Grab the position of a relevant cell
 			Vec2 curr = my_rels.next();
 			int x = curr.getX();
 			int y = curr.getY();
+<<<<<<< HEAD
 			if(isCritical(x, y, checking) == true)
 			{
 				score += turn/3;
@@ -1223,25 +1322,43 @@ public class Board {
 		}
 		if(checking == me) score+= 2*(win_count*win_count)/(turn/2);
 		else score+= -2*(win_count*win_count)/(turn/2);
+=======
+			
+			// Check if this cell is critical
+			if(isCritical(x, y, me) == true) {
+				score += turn/3;
+				if((minimax_cutoff % 2) == 1) {
+					// Copy the board
+					Board cpy = new Board(board);
+					
+					// Fill the chosen cell
+					cpy.fillCell(x, y, me);
+					
+					// Check for a winner
+					if(cpy.getWinner() == me) {
+						win_count++;
+					}
+				}
+			}
+		}
+		score+= 3*(win_count*win_count)/(turn/2);
+>>>>>>> be9aa93254e40a684326d76415c5223509eb6150
 		
-		double result = Math.tanh(score/(2*turn));
-		
-		return result;
+		// Return the modified score
+		return Math.tanh(score/(2*turn));
 	}
 	
 	/**
 	 * Checks each corner of the board to see if there is a player there
 	 * @return The first corner found with a player, if none have a player null is returned
 	 */
-	private int[] check_corners()
-	{
-		
+	private int[] check_corners() {
 		if(cellTaken(0, 0) == true) return new int[] {0, 0};//Top left
-		else if(cellTaken(dim - 1, 0) == true) return new int[] {dim - 1, 0};//Top right
-		else if(cellTaken(2*dim - 2, dim - 1) == true) return new int[] {2*dim - 2, dim - 1};//Middle right
-		else if(cellTaken(2*dim - 2, 2*dim - 2) == true) return new int[] {2*dim - 2, 2*dim - 2};//Bottom right
-		else if(cellTaken(dim - 1, 2*dim - 2) == true) return new int[] {dim - 1, 2*dim - 2};//Bottom left
-		else if(cellTaken(0, dim - 1) == true) return new int[] {0, dim - 1};//Middle left
+		else if(cellTaken(dim - 1, 0) == true) return new int[] {dim - 1, 0}; // Top right
+		else if(cellTaken(2*dim - 2, dim - 1) == true) return new int[] {2*dim - 2, dim - 1}; // Middle right
+		else if(cellTaken(2*dim - 2, 2*dim - 2) == true) return new int[] {2*dim - 2, 2*dim - 2}; // Bottom right
+		else if(cellTaken(dim - 1, 2*dim - 2) == true) return new int[] {dim - 1, 2*dim - 2}; // Bottom left
+		else if(cellTaken(0, dim - 1) == true) return new int[] {0, dim - 1}; // Middle left
 		
 		return null;
 	}
@@ -1251,15 +1368,13 @@ public class Board {
 	 * @param playerID
 	 * @return The first corner found with a the player, if none have a player null is returned
 	 */
-	private int[] get_start(int playerID)
-	{
-		
-		if(getCell(0, 0).getPlayer() == playerID) return new int[] {0, 0};//Top left
-		else if(getCell(dim - 1, 0).getPlayer() == playerID) return new int[] {dim - 1, 0};//Top right
-		else if(getCell(2*dim - 2, dim - 1).getPlayer() == playerID) return new int[] {2*dim - 2, dim - 1};//Middle right
-		else if(getCell(2*dim - 2, 2*dim - 2).getPlayer() == playerID) return new int[] {2*dim - 2, 2*dim - 2};//Bottom right
-		else if(getCell(dim - 1, 2*dim - 2).getPlayer() == playerID) return new int[] {dim - 1, 2*dim - 2};//Bottom left
-		else if(getCell(0, dim - 1).getPlayer() == playerID) return new int[] {0, dim - 1};//Middle left
+	private int[] get_start(int playerID) {
+		if(getCell(0, 0).getPlayer() == playerID) return new int[] {0, 0}; // Top left
+		else if(getCell(dim - 1, 0).getPlayer() == playerID) return new int[] {dim - 1, 0}; // Top right
+		else if(getCell(2*dim - 2, dim - 1).getPlayer() == playerID) return new int[] {2*dim - 2, dim - 1}; // Middle right
+		else if(getCell(2*dim - 2, 2*dim - 2).getPlayer() == playerID) return new int[] {2*dim - 2, 2*dim - 2}; // Bottom right
+		else if(getCell(dim - 1, 2*dim - 2).getPlayer() == playerID) return new int[] {dim - 1, 2*dim - 2}; // Bottom left
+		else if(getCell(0, dim - 1).getPlayer() == playerID) return new int[] {0, dim - 1}; // Middle left
 		
 		return null;
 	}
@@ -1269,17 +1384,18 @@ public class Board {
 	 * @param enemyID
 	 * @return the start position
 	 */
-	private Vec2 get_enemy_start(int enemyID)
-	{
+	private Vec2 get_enemy_start(int enemyID) {
 		Vec2 start;
 		
-		for(int y = 0; y < 2*dim - 1; y++)
-		{
+		// Loop over every row
+		for(int y = 0; y < 2*dim - 1; y++) {
+			// Find the size of this row
 			int RowSize = getRowSize(y);
-			for(int x = 0; x < RowSize; x++)
-			{
-				if(cells[y][x].getPlayer() == enemyID)
-				{
+			
+			// Loop over every cell in this row
+			for(int x = 0; x < RowSize; x++) {
+				// See if this is the enemies move
+				if(cells[y][x].getPlayer() == enemyID) {
 					start = new Vec2(x, y);
 					return start;
 				}
@@ -1295,38 +1411,42 @@ public class Board {
 	 * @param playerID player id of the cell
 	 * @return true if critical, false if not
 	 */
-	private boolean isCritical(int x, int y, int playerID)
-	{
+	private boolean isCritical(int x, int y, int playerID) {
+		// Get adjacent cells
 		Cell[] adj = getAdj(x, y);
 		int setX = -1;
 		int setY = -1;
+		
 		// Workout if this cell is critical
+		
+		// Loop over all adjacent cells
 		for(int i=0; i<MAX_ADJ; i++) {
+			// Grab an adj cell
 			Cell adjCell = adj[i];
-			if(adjCell != null)
-			{
-				if(adjCell.getPlayer() == playerID)
-				{
+			
+			// Make sure this cell is valid
+			if(adjCell != null) {
+				// Make sure the cell belongs to the given player
+				if(adjCell.getPlayer() == playerID) {
+					// Grab info on the cell
 					int tempX = adjCell.getX();
 					int tempY = adjCell.getY();
 					int tempID = adjCell.getChainID();
-					if((setX < 0)&&(getChain(tempID).getLength() > 1))
-					{
+					
+					// Check chains to find if it is critical or not
+					if(setX < 0 && getChain(tempID).getLength() > 1) {
 						setX = tempX;
 						setY = tempY;
-					}
-					else if((setX > -1)&&(getChain(tempID).getLength() > 1)&&(!isAdj(setX, setY, tempX, tempY)))
-					{
+					} else if(setX > -1 && getChain(tempID).getLength() > 1 && !isAdj(setX, setY, tempX, tempY)) {
 						return true;
-					}
-					else if((setX > -1)&&(getChain(tempID).getLength() > 1)&&(isAdj(setX, setY, tempX, tempY)))
-					{
+					} else if(setX > -1 && getChain(tempID).getLength() > 1 && isAdj(setX, setY, tempX, tempY)) {
 						setX = tempX;
 						setY = tempY;
 					}
 				}
 			}
 		}
+		
 		return false;
 	}
 	
@@ -1336,14 +1456,15 @@ public class Board {
 	 * @param ID
 	 * @return the chain, if no chain is found this return null
 	 */
-	private Chain getChain(int ID)
-	{
+	private Chain getChain(int ID) {
 		Iterator<Chain> my_chains = chains.iterator();
 		
-		while(my_chains.hasNext())
-		{
+		// Loop over eall chains
+		while(my_chains.hasNext()) {
 			Chain chain = my_chains.next();
-			if(chain.getID() == ID)return chain;
+			if(chain.getID() == ID) {
+				return chain;
+			}
 		}
 		
 		return null;
@@ -1354,22 +1475,21 @@ public class Board {
 	 * @param destID destination chain ID
 	 * @param srcID source chain ID
 	 */
-	private void merge_chains(int destID, int srcID)
-	{
+	private void merge_chains(int destID, int srcID) {
 		//System.out.println("Merging "+srcID+" into "+destID);
 		Chain dest = getChain(destID);
 		Chain src = getChain(srcID);
 		
-		if(src == null)
-		{
+		// Validarte inputs
+		if(src == null) {
 			System.out.println("Merging "+srcID+" into "+destID);
 			System.out.println("src is null with ID "+srcID);
 			print_chains(System.out);
 			print_chain_IDs(System.out);
 			return;
 		}
-		if(dest == null)
-		{
+		
+		if(dest == null) {
 			System.out.println("Merging "+srcID+" into "+destID);
 			System.out.println("dest is null with ID"+destID);
 			print_chains(System.out);
@@ -1379,35 +1499,31 @@ public class Board {
 		
 		// Add cells from src to dest
 		ArrayList<Cell> src_cells = src.getCells();
-		//System.out.println("Starting Cell iteration in merge");
+		
 		Iterator<Cell> merge_cells = src_cells.iterator();
-		while(merge_cells.hasNext())
-		{
+		while(merge_cells.hasNext()) {
 			Cell cell = merge_cells.next();
 			dest.add_cell(cell);
 		}
 		
 		// Add sides from src to dest
-		for(int i = 0; i < MAX_ADJ; i++)
-		{
+		for(int i = 0; i < MAX_ADJ; i++) {
 			int side = (int)Math.pow(2, i);
 			if(src.hasSide(side))dest.setSide(side);
 		}
 		
 		//Remove the src chain
 		chains.remove(src);
-		if(dest.getSide_Count() >= 3)
-		{
+		if(dest.getSide_Count() >= 3) {
 			winner = dest.getPlayerID();
 		}
 	}
 	
-	private void print_chain_IDs(PrintStream output)
-	{
+	private void print_chain_IDs(PrintStream output) {
 		Iterator<Chain> my_chains = chains.iterator();
 		
-		while(my_chains.hasNext())
-		{
+		// Loop over all chains
+		while(my_chains.hasNext()) {
 			Chain chain = my_chains.next();
 			output.println(chain.getID());
 		}
