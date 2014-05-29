@@ -91,8 +91,8 @@ public class Board {
 		this.winner = Piece.INVALID;
 		//No turns have occured yet
 		this.turn = 0;
-		this.heuristic_depth = 10;
-		this.minimax_cutoff = 5;
+		this.heuristic_depth = 8;
+		this.minimax_cutoff = 3;
 		this.total_cells  = 3*(dim*dim - dim) + 1;
 		this.chains = new ArrayList<Chain>();
 		this.chainIDs = 0;
@@ -350,10 +350,9 @@ public class Board {
 	 */
 	public void swapCell(int x, int y, int player) {
 		// Just update the cell
-		setCell(x, y, player);
+		fillCell(x, y, player);
 		// Though a turn was made, the board hasn't changed
 		filled--;
-		turn++;
 	}
 	
 	/**
@@ -602,6 +601,34 @@ public class Board {
 	}
 	
 	/**
+	 * Checks if to cells are adjacent
+	 * @param x1
+	 * @param y1
+	 * @param x2
+	 * @param y2
+	 * @return true if adjacent false if not
+	 */
+	public boolean isAdj(int x1, int y1, int x2, int y2)
+	{
+		if(x2 == x1)
+		{
+			if(y2 == (y1 - 1))return true;// Up
+			if(y2 == (y1 + 1))return true;// Down
+		}
+		if(x2 == (x1 - 1))
+		{
+			if(y2 == (y1 - 1))return true;// Up left
+			if(y2 == y1)return true;// Left
+		}
+		if(x2 == (x1 + 1))
+		{
+			if(y2 == y1)return true; //Right
+			if(y2 == (y1 + 1))return true; // Down right
+		}
+		return false;
+	}
+	
+	/**
 	 * @return The winner with the current board state
 	 */
 	public int getWinner() {
@@ -630,6 +657,42 @@ public class Board {
 				if(current != null) {
 					output.print(char_array[current.getPlayer()]);
 					output.print(' ');
+				}
+			}
+			
+			// Prints new line for the next row
+			output.println();
+		}
+		output.println();
+	}
+	
+	/**
+	 * @param output The output stream to print to
+	 */
+	public void print_crits(PrintStream output) {
+		char[] char_array = new char[3];
+		char_array[0] = PLAYER_NONE_TOKEN;
+		char_array[1] = PLAYER_WHITE_TOKEN;
+		char_array[2] = PLAYER_BLACK_TOKEN;
+		
+		// Iterates over whole board printing out each token
+		for(int y = 0; y < 2*this.dim - 1; y++) {
+			// Adds space buffer for nice hexagon effect
+			for(int i = 0; i < Math.abs((this.dim - 1) - y); i++) {
+				output.print(' ');
+			}
+			
+			// Prints the tokens for the row
+			for(int x = 0; x < 2*this.dim - 1; x++) {
+				Cell current = getCell(x,y);
+				if(current != null) {
+					int player = current.getPlayer();
+					if(player == 0)
+					{
+						if(isCritical(x, y, 1)||isCritical(x, y, 2))output.print("C ");
+						else output.print("- ");
+					}
+					else output.print(char_array[current.getPlayer()]+" ");
 				}
 			}
 			
@@ -675,7 +738,7 @@ public class Board {
 		Move move;
 		
 		if(turn < 1) move = makefirstMove(playerID);
-		else if(turn < heuristic_depth) move = makeheuristicMove(playerID);
+		else if(filled < heuristic_depth) move = makeheuristicMove(playerID);
 		else move = makeminimaxMove(playerID);
 		fillCell(move.Col, move.Row, move.P);
 		
@@ -688,7 +751,7 @@ public class Board {
 	 */
 	private Move makefirstMove(int playerID)
 	{
-		return new Move(playerID, false, 0, 0);
+		return new Move(playerID, false, (2*dim - 2), (2*dim - 2));
 	}
 	
 	/**
@@ -710,10 +773,21 @@ public class Board {
 		Vec2 enemy_start = get_enemy_start(enemy);
 		
 		if(enemy_start.getY() < (dim - 1)) move.Row = 2*dim - 2;
+		else if(enemy_start.getY() == (dim - 1))move.Row = (dim - 1);
 		else move.Row = 0;
 		
-		if(enemy_start.getX() < (getRowSize(enemy_start.getY())/2)) move.Col = 2*dim - 2;
-		else move.Col = dim - 1;
+		if(move.Row == 0){
+			if(enemy_start.getX() < (getRowSize(enemy_start.getY())/2)) move.Col = dim - 1;
+			else move.Col = 0;
+		}
+		if(move.Row == (dim - 1)){
+			if(enemy_start.getX() < (getRowSize(enemy_start.getY())/2)) move.Col = 2*dim - 2;
+			else move.Col = 0;
+		}
+		if(move.Row == (2*dim - 2)){
+			if(mapX(enemy_start.getX(), enemy_start.getY()) < (getRowSize(enemy_start.getY())/2)) move.Col = 2*dim - 2;
+			else move.Col = (dim - 1);
+		}
 		
 		return move;
 	}
@@ -896,7 +970,8 @@ public class Board {
 		//If the max depth has been reached, return the evaluation of the board state
 		else if(depth >= minimax_cutoff)
 		{
-			double result = board.eval(enemy);
+			Board cpy = new Board(board);
+			double result = board.eval(enemy, cpy);
 			//System.out.println("Result of this configuration is: "+result);
 			//board.print(System.out);
 			return result;
@@ -955,7 +1030,8 @@ public class Board {
 		//If the max depth has been reached, return the evaluation of the board state
 		else if(depth >= minimax_cutoff)
 		{
-			double result = board.eval(me);
+			Board cpy = new Board(board);
+			double result = board.eval(me, cpy);
 			//System.out.println("Result of this configuration is: "+result);
 			//board.print(System.out);
 			return result;
@@ -1092,7 +1168,7 @@ public class Board {
 	 * @param me the playerID of the player who called the minimax algorithm
 	 * @return the evaluation value
 	 */
-	private double eval(int me)
+	private double eval(int me, Board board)
 	{
 		double score = 0;
 		int enemy = 2 - me + 1;
@@ -1124,17 +1200,23 @@ public class Board {
 		score += get_player_rels(my_relevant_cells, me);
 		
 		Iterator<Vec2> my_rels = my_relevant_cells.iterator();
-		
+		int win_count = 0;
 		while(my_rels.hasNext())
 		{
 			
 			Vec2 curr = my_rels.next();
 			int x = curr.getX();
 			int y = curr.getY();
-			if(isCritical(x, y, me) == true)score += 3;
+			if(isCritical(x, y, me) == true)
+			{
+				score += turn/3;
+				Board cpy = new Board(board);
+				cpy.fillCell(x, y, me);
+				if(cpy.getWinner() == me) win_count++;
+			}
 		}
-		
-		//score += Criticals(me);
+		score+= 3*(win_count*win_count)/(turn/2);
+
 		
 		double result = Math.tanh(score/(2*turn));
 		
@@ -1200,10 +1282,18 @@ public class Board {
 		return null;
 	}
 	
+	/**
+	 * Returns whether a cell is critical or not
+	 * @param x x coordinate of the cell
+	 * @param y y coordinate of the cell
+	 * @param playerID player id of the cell
+	 * @return true if critical, false if not
+	 */
 	private boolean isCritical(int x, int y, int playerID)
 	{
 		Cell[] adj = getAdj(x, y);
-		int ID = -1;
+		int setX = -1;
+		int setY = -1;
 		// Workout if this cell is critical
 		for(int i=0; i<MAX_ADJ; i++) {
 			Cell adjCell = adj[i];
@@ -1211,11 +1301,22 @@ public class Board {
 			{
 				if(adjCell.getPlayer() == playerID)
 				{
+					int tempX = adjCell.getX();
+					int tempY = adjCell.getY();
 					int tempID = adjCell.getChainID();
-					if((ID < 0)&&(getChain(tempID).getLength() > 2))ID = tempID;
-					else if((ID > -1)&&(getChain(tempID).getLength() > 2)&&(tempID != ID))
+					if((setX < 0)&&(getChain(tempID).getLength() > 1))
+					{
+						setX = tempX;
+						setY = tempY;
+					}
+					else if((setX > -1)&&(getChain(tempID).getLength() > 1)&&(!isAdj(setX, setY, tempX, tempY)))
 					{
 						return true;
+					}
+					else if((setX > -1)&&(getChain(tempID).getLength() > 1)&&(isAdj(setX, setY, tempX, tempY)))
+					{
+						setX = tempX;
+						setY = tempY;
 					}
 				}
 			}
@@ -1223,55 +1324,6 @@ public class Board {
 		return false;
 	}
 	
-	private int Criticals(int playerID)
-	{
-		boolean added[][] = new boolean[2*dim - 1][2*dim - 1];
-		int score = 0;
-		
-		ArrayList<Vec2> chain_cells = new ArrayList<Vec2>();
-		for(int y = 0; y < 2*dim - 1; y++)
-		{
-			int RowSize = getRowSize(y);
-			for(int x = 0; x < RowSize; x++)
-			{
-				Cell cell = cells[y][x];
-				if((cell.getPlayer() == playerID)&&(getChain(cell.getChainID()).getLength() > 2))
-				{
-					chain_cells.add(new Vec2(cell.getX(), cell.getY()));
-				}
-			}
-		}
-		Iterator<Vec2> the_cells = chain_cells.iterator();
-		/**
-		 * Loop over all cells to find taken cells
-		 * then loop over adjacent cells of taken cells and add them if they haven't been added already
-		 */
-		while(the_cells.hasNext())
-		{
-			Vec2 curr = the_cells.next(); 
-			int X = curr.getX();
-			int Y = curr.getY();
-			Cell adj[] = getAdj(X, Y);
-			for(int i = 0; i < MAX_ADJ; i++)
-			{
-				if(adj[i] != null)
-				{
-					if(	(adj[i].getPlayer() == 0)&&
-						(added[adj[i].getY()][adj[i].getX()] != true))
-					{
-						added[adj[i].getY()][adj[i].getX()] = true;
-					}
-					else if((adj[i].getPlayer() == 0)&&
-							(added[adj[i].getY()][adj[i].getX()] == true) )
-					{
-						score++;
-					}
-				}
-			}
-		}
-		//System.out.println("Iterated over "+count+" cells when checking for Criticals");
-		return score;
-	}
 	
 	/**
 	 * Gets the chain with the ID
