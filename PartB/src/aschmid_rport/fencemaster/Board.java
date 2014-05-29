@@ -1196,8 +1196,13 @@ public class Board {
 			}
 		}
 		
+		int checking;
+		if((minimax_cutoff % 2) == 1)checking = enemy;
+		else checking = me;
+		
 		ArrayList<Vec2> my_relevant_cells = new ArrayList<Vec2>();
-		score += get_player_rels(my_relevant_cells, me);
+		int longest_chain = get_player_rels(my_relevant_cells, checking);
+		if(checking == me) score += longest_chain;
 		
 		Iterator<Vec2> my_rels = my_relevant_cells.iterator();
 		int win_count = 0;
@@ -1207,19 +1212,17 @@ public class Board {
 			Vec2 curr = my_rels.next();
 			int x = curr.getX();
 			int y = curr.getY();
-			if(isCritical(x, y, me) == true)
+			if(isCritical(x, y, checking) == true)
 			{
 				score += turn/3;
-				if((minimax_cutoff % 2) == 1)
-				{
-					Board cpy = new Board(board);
-					cpy.fillCell(x, y, me);
-					if(cpy.getWinner() == me) win_count++;
-				}
+				
+				Board cpy = new Board(board);
+				cpy.fillCell(x, y, checking);
+				if(cpy.getWinner() == checking) win_count++;
 			}
 		}
-		score+= 3*(win_count*win_count)/(turn/2);
-
+		if(checking == me) score+= 2*(win_count*win_count)/(turn/2);
+		else score+= -2*(win_count*win_count)/(turn/2);
 		
 		double result = Math.tanh(score/(2*turn));
 		
