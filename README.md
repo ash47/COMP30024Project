@@ -1,8 +1,9 @@
 COMP30024 Artificial Intelligence
 ==============
 
-###Nothing much here###
- - Some change
+###About###
+ - A group project completed for AI in Semester 1, 2014
+ - It has a bot that plays a game
 
 ###Test Cases###
 
